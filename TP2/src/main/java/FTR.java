@@ -14,13 +14,10 @@ public class FTR implements Runnable {
     private final static int MTU = 1500;
 
 
-    public FTR(int requestPort, int sendPort){
-        try {
-            this.requestSocket = new DatagramSocket(requestPort);
-            this.sendSocket = new DatagramSocket(sendPort);
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
+    public FTR(DatagramSocket s){
+
+        this.requestSocket = s;
+
     }
 
 
@@ -48,9 +45,10 @@ public class FTR implements Runnable {
     }
 
 
-    public void send(String ip, int port) { // receives the IP of the server // recieves the port of the server
+    public void send(String ip, int port) { // receives the IP of the receiver // recieves the port of the receiver
         try {
             InetAddress ipServer = InetAddress.getByName(ip);
+
             System.out.println("Conecting to: " + ipServer.toString() +":" +port);
 
 
