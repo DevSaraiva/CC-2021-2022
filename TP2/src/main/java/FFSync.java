@@ -1,10 +1,14 @@
+import java.io.File;
+import java.io.IOException;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class FFSync {
 
-    private int port = 12345;
+    private int port = 8888;
     private String folderPath;
     private List<String> ips;
 
@@ -12,9 +16,27 @@ public class FFSync {
 
     public FFSync(String folderPath, List<String> ips){
 
-        this.folderPath = folderPath;
+        String currentPath = null;
+        try {
+            currentPath = new File(".").getCanonicalPath();
+            this.folderPath = currentPath + "/" + folderPath;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
         this.ips = ips;
 
+    }
+
+
+    public File[] getFiles(){
+
+        File folder = new File(this.folderPath);
+        File[] files = folder.listFiles();
+
+
+        return files;
     }
 
 
@@ -24,28 +46,34 @@ public class FFSync {
 
 
 
-            String folderPath = args[0];
+            String folder = args[0];
             List<String> ips = new ArrayList<>();
 
             for(int i = 1; i < args.length; i++){
                 ips.add(args[i]);
             }
 
-            FFSync ffSync = new FFSync(folderPath,ips);
+
+            FFSync ffSync = new FFSync(folder,ips);
+
+
 
 
         try {
 
-            DatagramSocket receiveSocket = new DatagramSocket(Integer.parseInt(args[2])) ;
 
 
-            FTR ftr = new FTR(receiveSocket);
+            FTR ftr = new FTR(Integer.parseInt(args[2]));
+
 
             Thread t = new Thread(ftr);
 
             t.start();
 
-            ftr.send(ffSync.ips.get(0),Integer.parseInt(args[3]));
+            ftr.sendFile(ffSync.ips.get(0),Integer.parseInt(args[3]),0,ffSync.getFiles()[0]);
+
+
+
 
         }catch (Exception e){
             e.printStackTrace();
