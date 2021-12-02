@@ -55,7 +55,7 @@ public class RequestHandler implements Runnable {
         int block = bb.getInt();
         byte[] data = bb.array();
         System.out.println(Arrays.toString(data));
-        System.out.println("3" + "\n" + seq + "\n" + block);
+        System.out.println("tamanho recevido" + data.length);
     }
 
     public void getFin(ByteBuffer bb){
@@ -180,6 +180,8 @@ public class RequestHandler implements Runnable {
             InetAddress ipServer = InetAddress.getByName(ip);
             DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
             this.sendSocket.send(outPacket);
+
+            System.out.println("tamanho enviado" + packet.length);
         }
         catch (Exception e){
             e.printStackTrace();
