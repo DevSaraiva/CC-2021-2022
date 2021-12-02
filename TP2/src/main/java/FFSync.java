@@ -41,6 +41,8 @@ public class FFSync {
 
 
 
+
+
     public static void main (String[] args){
 
 
@@ -61,16 +63,25 @@ public class FFSync {
 
         try {
 
+            int requestPort = Integer.parseInt(args[2]);
 
+            String ip = ffSync.ips.get(0);
 
-            FTR ftr = new FTR(Integer.parseInt(args[2]));
+            int port = Integer.parseInt(args[3]);
 
+            DatagramSocket requestSocket = new DatagramSocket(requestPort);
+
+            DatagramSocket sendSocket = new DatagramSocket();
+
+            FTR ftr = new FTR(requestSocket,sendSocket);
+
+            RequestHandler rq = new RequestHandler(sendSocket);
 
             Thread t = new Thread(ftr);
 
             t.start();
 
-            ftr.sendFile(ffSync.ips.get(0),Integer.parseInt(args[3]),0,ffSync.getFiles()[0]);
+            rq.sendFile(ip ,port,0,ffSync.getFiles()[0]);
 
 
 
