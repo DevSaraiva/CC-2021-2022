@@ -7,26 +7,29 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
+
 
 public class FTR implements Runnable {
 
     private DatagramSocket requestSocket;
     private DatagramSocket sendSocket;
+    private String folderPath;
 
 
+    Map<String,Map<Integer,TranferState>> transfers ;
 
 
     private final static int MTU = 1500;
 
 
-    public FTR(DatagramSocket requestSocket, DatagramSocket sendSocket){
+    public FTR(DatagramSocket requestSocket, DatagramSocket sendSocket, String folderPath){
 
             this.requestSocket = requestSocket;
             this.sendSocket = sendSocket;
+            this.folderPath = folderPath;
+            this.transfers = new HashMap<>();
 
     }
 
@@ -36,13 +39,25 @@ public class FTR implements Runnable {
         boolean running = true;
 
         try {
-            while (running) {                                           // inifnite loop - very bad pratice
+            while (running) {
                 byte[] inBuffer = new byte[MTU];
-                // create the packet to receive the data from client
                 DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
                 this.requestSocket.receive(inPacket);
-                RequestHandler rh = new RequestHandler(inPacket,sendSocket);         // send received packet to new thread to be treated
+
+                Map<Integer,TranferState> tfs;
+
+                if(transfers.containsKey(inPacket.getAddress().toString())){
+                    tfs = this.transfers.get(inPacket.getAddress().toString());
+                }else{
+                    tfs = new HashMap<>();
+                    this.transfers.put(inPacket.getAddress().toString(),tfs);
+                }
+
+
+                RequestHandler rh = new RequestHandler(inPacket,this.folderPath,tfs);         // send received packet to new thread to be treated
                 Thread t = new Thread(rh);
+                try{Thread.sleep(500);}catch(InterruptedException e){System.out.println(e);}
+
                 t.start();
             }
 

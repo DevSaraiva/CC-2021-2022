@@ -3,27 +3,43 @@ import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class RequestHandler implements Runnable {
 
     private DatagramPacket inPacket;
     private DatagramSocket sendSocket;
+    private String folderPath;
+    private Map<Integer,TranferState> tfs;
+    private  final int dataSize = 1400;
 
 
-    public RequestHandler  (DatagramPacket inPacket, DatagramSocket SendSocket) {
+
+    public RequestHandler  (DatagramPacket inPacket, String folderPath, Map<Integer,TranferState> tfs) {
         this.inPacket = inPacket;
-        System.out.println("Packet Received from: " + inPacket.getAddress().toString() +":" + inPacket.getPort());
-        this.sendSocket = SendSocket;
+
+        try{
+            this.sendSocket = new DatagramSocket();
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        this.tfs = tfs;
+
+        this.folderPath = folderPath;
        
     }
 
-    public RequestHandler(DatagramSocket sendSocket){
-        this.sendSocket = sendSocket;
-    }
 
+    public RequestHandler(){
+        try{
+            this.sendSocket = new DatagramSocket();
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
     public void getSyn(ByteBuffer bb){
 
@@ -44,19 +60,61 @@ public class RequestHandler implements Runnable {
 
     public void getWrite(ByteBuffer bb){
         int seq = bb.getInt();
+        int blocks = bb.getInt();
+
+
         CharBuffer ch = bb.asCharBuffer();
         String fileName = ch.toString();
+
+        TranferState tf = new TranferState(fileName,blocks);
+
+        this.tfs.put(seq,tf);
     }
 
 
-    public void getData(ByteBuffer bb){
+    public void getData(ByteBuffer bb) {
 
+        int length = bb.getInt();
         int seq = bb.getInt();
         int block = bb.getInt();
         byte[] data = bb.array();
-        System.out.println(Arrays.toString(data));
-        System.out.println("tamanho recevido" + data.length);
-    }
+
+
+       TranferState tf = this.tfs.get(seq);
+
+        System.out.println(tf);
+
+        byte[] dataFinal = new byte[length];
+
+        for (int i = 0; i < length; i++) {
+            dataFinal[i] = data[i];
+        }
+
+
+        tf.addBytes(dataFinal);
+        tf.increaseBlocks();
+
+
+        if (tf.isFinished(block)) {
+
+            System.out.println("finished");
+
+            String path = this.folderPath + '/' + tf.getFileName();
+
+            System.out.println(tf.getBytes().length);
+
+                try {
+                    File outputFile = new File(path.trim());
+                    FileOutputStream outputStream = new FileOutputStream(outputFile);
+                    outputStream.write(tf.getBytes());  // Write the bytes and you're done.
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+
 
     public void getFin(ByteBuffer bb){
         int seq = bb.getInt();
@@ -80,7 +138,9 @@ public class RequestHandler implements Runnable {
 
             String fileNames = names.toString();
 
-            ByteBuffer buff = ByteBuffer.allocate(4 + 2 * fileNames.length()).putInt(identifier);
+            ByteBuffer buff = ByteBuffer.allocate(8 + 2 * fileNames.length()).
+                                        putInt(identifier).
+                                        putInt(2*fileNames.length());
 
             CharBuffer cbuff = buff.asCharBuffer();
 
@@ -133,16 +193,17 @@ public class RequestHandler implements Runnable {
     }
 
 
-    public void sendWrite(String ip, int port,int seq,String filename){
+    public void sendWrite(String ip, int port,int seq, int blocks, String filename){
 
         final int identifier = 2;
 
         try {
 
 
-            ByteBuffer buff = ByteBuffer.allocate(8 + filename.length()).
+            ByteBuffer buff = ByteBuffer.allocate(12 + 2 * filename.length()).
                     putInt(identifier).
-                    putInt(seq);
+                    putInt(seq).
+                    putInt(blocks);
 
             CharBuffer cbuff = buff.asCharBuffer();
 
@@ -170,8 +231,9 @@ public class RequestHandler implements Runnable {
 
         try {
             byte[] packet = ByteBuffer.
-                    allocate(12 + data.length).
+                    allocate(16 + data.length).
                     putInt(identifier).
+                    putInt(data.length).
                     putInt(seq).
                     putInt(block).
                     put(data).array();
@@ -199,14 +261,22 @@ public class RequestHandler implements Runnable {
             e.printStackTrace();
         }
 
-        // Slicing the data to 512 packets
 
-        final int dataSize = 512;
+        int blocks = (int)Math.ceil(fileContent.length/this.dataSize);
+
+        System.out.println("blocks :" + blocks);
+
+        sendWrite(ip,port,seq,blocks,file.getName());
+
+        // Slicing the data to datasize packets
+
+        final int dataSize = this.dataSize;
         int start = 0;
         int end = 0;
         int k = 0;
+        int i = 0;
 
-        for(int i = 0; (i + 1) * dataSize < fileContent.length; i++){
+        for(i = 0; (i + 1) * dataSize < fileContent.length; i++){
 
             start = i * dataSize;
             end = (i + 1) * dataSize;
@@ -224,6 +294,19 @@ public class RequestHandler implements Runnable {
             sendData(ip,port,seq,i,data);
 
         }
+
+        start = i * dataSize;
+        end = fileContent.length;
+
+        byte[] data = new byte[end-start];
+
+        for(int j = start; j < end; j++){
+
+            data[k] = fileContent[j];
+            k++;
+        }
+
+        sendData(ip,port,seq,i,data);
 
     }
 
@@ -257,9 +340,6 @@ public class RequestHandler implements Runnable {
     public void run() {
 
         byte[] inBuffer = this.inPacket.getData();                  // get client Data
-        InetAddress clientIp = this.inPacket.getAddress();          // get client IP
-        int port = this.inPacket.getPort();                         // get client port
-
 
         ByteBuffer bb = ByteBuffer.wrap(inBuffer);
 
@@ -287,14 +367,6 @@ public class RequestHandler implements Runnable {
             default:
                 // code block
         }
-
-
-
-        String receivedString = new String(inBuffer);
-        receivedString = receivedString.toUpperCase();              // to Upper case
-
-
-
 
     }
 

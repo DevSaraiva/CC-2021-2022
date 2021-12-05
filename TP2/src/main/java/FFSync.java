@@ -40,9 +40,6 @@ public class FFSync {
     }
 
 
-
-
-
     public static void main (String[] args){
 
 
@@ -73,9 +70,10 @@ public class FFSync {
 
             DatagramSocket sendSocket = new DatagramSocket();
 
-            FTR ftr = new FTR(requestSocket,sendSocket);
 
-            RequestHandler rq = new RequestHandler(sendSocket);
+            FTR ftr = new FTR(requestSocket,sendSocket,ffSync.folderPath);
+
+            RequestHandler rq = new RequestHandler();
 
             Thread t = new Thread(ftr);
 
