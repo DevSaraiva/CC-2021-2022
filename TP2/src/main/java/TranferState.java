@@ -3,9 +3,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class TranferState {
 
+    private Lock l = new ReentrantLock();
     private String fileName;
     private int totalBlocks;
     private int actualBlocks;
@@ -31,7 +34,12 @@ public class TranferState {
     }
 
     public  void increaseBlocks(){
-        this.actualBlocks++;
+        this.l.lock();
+        try{
+            this.actualBlocks++;
+        }finally {
+            this.l.unlock();
+        }
     }
 
     public byte[] getBytes() {
@@ -39,6 +47,8 @@ public class TranferState {
     }
 
     public void addBytes(byte[] bytes){
+
+        this.l.lock();
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
             outputStream.write(this.bytes);
@@ -48,7 +58,9 @@ public class TranferState {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        finally {
+            this.l.unlock();
+        }
     }
 
     public boolean  isFinished(int actualBlocks){

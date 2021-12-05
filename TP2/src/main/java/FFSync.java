@@ -68,10 +68,8 @@ public class FFSync {
 
             DatagramSocket requestSocket = new DatagramSocket(requestPort);
 
-            DatagramSocket sendSocket = new DatagramSocket();
 
-
-            FTR ftr = new FTR(requestSocket,sendSocket,ffSync.folderPath);
+            FTR ftr = new FTR(requestSocket,ffSync.folderPath);
 
             RequestHandler rq = new RequestHandler();
 

@@ -8,7 +8,7 @@ import java.util.*;
 public class RequestHandler implements Runnable {
 
     private DatagramPacket inPacket;
-    private DatagramSocket sendSocket;
+    private DatagramSocket socket;
     private String folderPath;
     private Map<Integer,TranferState> tfs;
     private  final int dataSize = 1400;
@@ -19,7 +19,7 @@ public class RequestHandler implements Runnable {
         this.inPacket = inPacket;
 
         try{
-            this.sendSocket = new DatagramSocket();
+            this.socket = new DatagramSocket();
 
         } catch (Exception e){
             e.printStackTrace();
@@ -34,7 +34,7 @@ public class RequestHandler implements Runnable {
 
     public RequestHandler(){
         try{
-            this.sendSocket = new DatagramSocket();
+            this.socket = new DatagramSocket();
 
         } catch (Exception e){
             e.printStackTrace();
@@ -63,12 +63,17 @@ public class RequestHandler implements Runnable {
         int blocks = bb.getInt();
 
 
+
         CharBuffer ch = bb.asCharBuffer();
         String fileName = ch.toString();
 
         TranferState tf = new TranferState(fileName,blocks);
 
         this.tfs.put(seq,tf);
+
+        sendACK(this.inPacket.getAddress(),this.inPacket.getPort(),seq,blocks);
+
+
     }
 
 
@@ -81,8 +86,7 @@ public class RequestHandler implements Runnable {
 
 
 
-
-       TranferState tf = this.tfs.get(seq);
+        TranferState tf = this.tfs.get(seq);
 
         System.out.println(tf);
 
@@ -113,6 +117,8 @@ public class RequestHandler implements Runnable {
                     e.printStackTrace();
                 }
             }
+
+            sendACK(this.inPacket.getAddress(),this.inPacket.getPort(),seq,block);
 
         }
 
@@ -153,7 +159,7 @@ public class RequestHandler implements Runnable {
             System.out.println("Conecting to: " + ipServer.toString() +":" +port);
 
             DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
-            this.sendSocket.send(outPacket);
+            this.socket.send(outPacket);
 
 
 
@@ -163,7 +169,7 @@ public class RequestHandler implements Runnable {
         }
     }
 
-    public void sendACK(String ip, int port, int seq, int block){
+    public void sendACK(InetAddress ip, int port, int seq, int block){
 
 
         try {
@@ -180,9 +186,9 @@ public class RequestHandler implements Runnable {
                     array();
 
 
-            InetAddress ipServer = InetAddress.getByName(ip);
-            DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
-            this.sendSocket.send(outPacket);
+
+            DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ip, port);
+            this.socket.send(outPacket);
 
 
 
@@ -216,7 +222,15 @@ public class RequestHandler implements Runnable {
 
             InetAddress ipServer = InetAddress.getByName(ip);
             DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
-            this.sendSocket.send(outPacket);
+            this.socket.send(outPacket);
+
+            //receive ack
+
+            byte[] inBuffer = new byte[20];
+            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
+            this.socket.receive(inPacket);
+
+
         }
         catch (Exception e){
             e.printStackTrace();
@@ -242,7 +256,13 @@ public class RequestHandler implements Runnable {
 
             InetAddress ipServer = InetAddress.getByName(ip);
             DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
-            this.sendSocket.send(outPacket);
+            this.socket.send(outPacket);
+
+            byte[] inBuffer = new byte[20];
+            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
+            this.socket.receive(inPacket);
+
+
 
         }
         catch (Exception e){
@@ -308,6 +328,7 @@ public class RequestHandler implements Runnable {
 
         sendData(ip,port,seq,i,data);
 
+
     }
 
     public void sendFin(String ip, int port,int seq) {
@@ -327,7 +348,7 @@ public class RequestHandler implements Runnable {
 
             InetAddress ipServer = InetAddress.getByName(ip);
             DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
-            this.sendSocket.send(outPacket);
+            this.socket.send(outPacket);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -339,7 +360,8 @@ public class RequestHandler implements Runnable {
         @Override
     public void run() {
 
-        byte[] inBuffer = this.inPacket.getData();                  // get client Data
+        byte[] inBuffer = this.inPacket.getData();
+
 
         ByteBuffer bb = ByteBuffer.wrap(inBuffer);
 

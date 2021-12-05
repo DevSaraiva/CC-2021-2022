@@ -14,7 +14,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class FTR implements Runnable {
 
     private DatagramSocket requestSocket;
-    private DatagramSocket sendSocket;
     private String folderPath;
 
 
@@ -24,10 +23,9 @@ public class FTR implements Runnable {
     private final static int MTU = 1500;
 
 
-    public FTR(DatagramSocket requestSocket, DatagramSocket sendSocket, String folderPath){
+    public FTR(DatagramSocket requestSocket, String folderPath){
 
             this.requestSocket = requestSocket;
-            this.sendSocket = sendSocket;
             this.folderPath = folderPath;
             this.transfers = new HashMap<>();
 
@@ -56,7 +54,7 @@ public class FTR implements Runnable {
 
                 RequestHandler rh = new RequestHandler(inPacket,this.folderPath,tfs);         // send received packet to new thread to be treated
                 Thread t = new Thread(rh);
-                try{Thread.sleep(500);}catch(InterruptedException e){System.out.println(e);}
+
 
                 t.start();
             }
