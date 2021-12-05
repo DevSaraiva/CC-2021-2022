@@ -80,6 +80,8 @@ public class RequestHandler implements Runnable {
         byte[] data = bb.array();
 
 
+
+
        TranferState tf = this.tfs.get(seq);
 
         System.out.println(tf);
@@ -87,9 +89,8 @@ public class RequestHandler implements Runnable {
         byte[] dataFinal = new byte[length];
 
         for (int i = 0; i < length; i++) {
-            dataFinal[i] = data[i];
+            dataFinal[i] = data[i + 16];
         }
-
 
         tf.addBytes(dataFinal);
         tf.increaseBlocks();
@@ -243,7 +244,6 @@ public class RequestHandler implements Runnable {
             DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
             this.sendSocket.send(outPacket);
 
-            System.out.println("tamanho enviado" + packet.length);
         }
         catch (Exception e){
             e.printStackTrace();
