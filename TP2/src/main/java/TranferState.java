@@ -66,10 +66,19 @@ public class TranferState {
     public boolean  isFinished(int actualBlocks){
 
 
-        System.out.println("actual =" + actualBlocks);
-        System.out.println("total =" + this.totalBlocks);
 
-        return this.actualBlocks == this.totalBlocks + 1;
+
+        Boolean res;
+        this.l.lock();
+
+        try{
+              res = this.actualBlocks == this.totalBlocks + 1;
+        }
+        finally {
+
+            this.l.unlock();
+        }
+        return res;
     }
 
     public String toString(){

@@ -111,6 +111,8 @@ public class FFSync {
 
             rq.sendSyn(InetAddress.getByName(ip) ,port,ffSync.seq,ffSync.getFiles());
 
+            ffSync.seq++;
+
 
             //waits for synchronization
 
@@ -120,10 +122,13 @@ public class FFSync {
 
             List<FileIP> neededFiles = ffSync.neededFilesCalculator();
 
-            for(FileIP fi :neededFiles){
+            for(FileIP fi : neededFiles){
                 rq.sendRead(fi.getIp(),port,ffSync.seq,fi.getFile().getPath());
-
+                ffSync.seq++;
+                System.out.println("Reading file:" + fi.getFile().getName());
             }
+
+
 
 
 

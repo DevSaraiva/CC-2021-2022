@@ -150,10 +150,7 @@ public class RequestHandler implements Runnable {
         int block = bb.getInt();
         byte[] data = bb.array();
 
-
-
         TranferState tf = this.tfs.get(seq);
-
 
         byte[] dataFinal = new byte[length];
 
@@ -167,11 +164,9 @@ public class RequestHandler implements Runnable {
 
         if (tf.isFinished(block)) {
 
-            System.out.println("finished");
 
             String path = this.folderPath + '/' + tf.getFileName();
 
-            System.out.println(tf.getBytes().length);
 
                 try {
                     File outputFile = new File(path.trim());
@@ -188,9 +183,6 @@ public class RequestHandler implements Runnable {
         }
 
 
-    public void getFin(ByteBuffer bb){
-        int seq = bb.getInt();
-    }
 
     public void sendSyn(InetAddress ip, int port, int seq, File[] files){
 
@@ -219,7 +211,6 @@ public class RequestHandler implements Runnable {
 
             this.socket.setSoTimeout(1000);
 
-
             //Waits Ack
 
             byte[] inBuffer = new byte[20];
@@ -228,10 +219,10 @@ public class RequestHandler implements Runnable {
 
 
         }
+        //resend packet
         catch (SocketTimeoutException e) {
 
             sendSyn(ip,port,seq,files);
-            System.out.println("timeout");
         }
 
          catch (Exception e){
@@ -331,7 +322,11 @@ public class RequestHandler implements Runnable {
             DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
             this.socket.send(outPacket);
 
-            //receive ack
+            this.socket.setSoTimeout(1000);
+
+
+
+            //Waits Ack
 
             byte[] inBuffer = new byte[20];
             DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
@@ -339,6 +334,11 @@ public class RequestHandler implements Runnable {
 
 
         }
+        catch (SocketTimeoutException e) {
+
+            sendWrite(ip,port,seq,blocks,filename);
+        }
+
         catch (Exception e){
             e.printStackTrace();
         }
@@ -365,13 +365,22 @@ public class RequestHandler implements Runnable {
             DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
             this.socket.send(outPacket);
 
+            //Waits Ack
+
+            this.socket.setSoTimeout(1000);
+
             byte[] inBuffer = new byte[20];
             DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
             this.socket.receive(inPacket);
 
-
-
+            //resend the packet
         }
+        catch (SocketTimeoutException e) {
+            System.out.println("Resending packet seq:" + seq + " block:" + block);
+            sendData(ip,port,seq,block,data);
+        }
+
+
         catch (Exception e){
             e.printStackTrace();
         }
@@ -391,7 +400,6 @@ public class RequestHandler implements Runnable {
 
         int blocks = (int)Math.ceil(fileContent.length/this.dataSize);
 
-        System.out.println("blocks :" + blocks);
 
         sendWrite(ip,port,seq,blocks,file.getName());
 
@@ -436,30 +444,6 @@ public class RequestHandler implements Runnable {
         sendData(ip,port,seq,i,data);
 
 
-    }
-
-    public void sendFin(String ip, int port,int seq) {
-
-        try {
-
-
-            final int identifier = 4;
-
-
-            byte[] packet = ByteBuffer.
-                    allocate(8).
-                    putInt(identifier).
-                    putInt(seq).
-                    array();
-
-
-            InetAddress ipServer = InetAddress.getByName(ip);
-            DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
-            this.socket.send(outPacket);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
 
