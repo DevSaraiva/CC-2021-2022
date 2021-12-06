@@ -108,9 +108,12 @@ public class FFSync {
 
             t.start();
 
-            rq.sendSyn(InetAddress.getByName(ip) ,port,ffSync.seq,ffSync.getFiles());
+            //Synchronize with all peers
 
-            ffSync.seq++;
+            for(int i = 0; i < ffSync.ips.size(); i++){
+                rq.sendSyn(InetAddress.getByName(ffSync.ips.get(i)) ,port,ffSync.seq,ffSync.getFiles());
+                ffSync.seq++;
+            }
 
 
             //waits for synchronization
@@ -127,9 +130,7 @@ public class FFSync {
                 System.out.println("Reading file:" + fi.getFile().getName());
             }
 
-
             
-
         }catch (Exception e){
             e.printStackTrace();
         }
