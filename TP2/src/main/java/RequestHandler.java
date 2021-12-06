@@ -1,22 +1,36 @@
 import java.io.*;
+import java.lang.instrument.Instrumentation;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 
 public class RequestHandler implements Runnable {
 
+    private Lock l = new ReentrantLock();
     private DatagramPacket inPacket;
     private DatagramSocket socket;
     private String folderPath;
     private Map<Integer,TranferState> tfs;
     private  final int dataSize = 1400;
+    private List<FileIP> allFiles;
+    private List<Boolean> syncronized;
 
 
 
-    public RequestHandler  (DatagramPacket inPacket, String folderPath, Map<Integer,TranferState> tfs) {
+
+
+    public RequestHandler  (DatagramPacket inPacket, String folderPath, Map<Integer,TranferState> tfs,List<FileIP> allFiles,List<Boolean> syncronized) {
         this.inPacket = inPacket;
+
+        this.syncronized = syncronized;
+
+        this.allFiles = allFiles;
+
 
         try{
             this.socket = new DatagramSocket();
@@ -41,11 +55,45 @@ public class RequestHandler implements Runnable {
         }
     }
 
+
     public void getSyn(ByteBuffer bb){
 
-        CharBuffer ch = bb.asCharBuffer();
+        int seq = bb.getInt();
+        int length = bb.getInt();
 
-        System.out.println(ch.toString());
+        byte[] data = new byte[length];
+
+        bb.get(data,0,length);
+
+        try{
+
+            ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(data));
+            File[] files = (File[]) in.readObject();
+            in.close();
+
+            this.l.lock();
+
+            for(int i = 0; i < files.length; i++){
+
+                FileIP fi = new FileIP(files[i],this.inPacket.getAddress().toString());
+                this.allFiles.add(fi);
+            }
+
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        finally {
+            this.l.unlock();
+        }
+
+        sendACK(this.inPacket.getAddress(),this.inPacket.getPort(),seq,0);
+        this.l.lock();
+        try{
+            this.syncronized.add(true);
+        }
+        finally {
+            this.l.unlock();
+        }
 
     }
 
@@ -88,7 +136,6 @@ public class RequestHandler implements Runnable {
 
         TranferState tf = this.tfs.get(seq);
 
-        System.out.println(tf);
 
         byte[] dataFinal = new byte[length];
 
@@ -127,44 +174,49 @@ public class RequestHandler implements Runnable {
         int seq = bb.getInt();
     }
 
-    public void sendSyn(String ip, int port, File[] files){
-
+    public void sendSyn(InetAddress ip, int port, int seq, File[] files){
 
         try {
 
-
             final int identifier = 0;
 
-            List<String> names = new ArrayList<>();
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(bos);
+            oos.writeObject(files);
+            oos.flush();
+            byte[] data = bos.toByteArray();
 
-            for(File f : files){
 
-                names.add(f.getName());
+            ByteBuffer buff = ByteBuffer.allocate(12 + data.length).
+                    putInt(identifier).
+                    putInt(seq).
+                    putInt(data.length).
+                    put(data);
 
-            }
-
-            String fileNames = names.toString();
-
-            ByteBuffer buff = ByteBuffer.allocate(8 + 2 * fileNames.length()).
-                                        putInt(identifier).
-                                        putInt(2*fileNames.length());
-
-            CharBuffer cbuff = buff.asCharBuffer();
-
-            cbuff.put(fileNames);
 
             byte[] packet = buff.array();
 
-            InetAddress ipServer = InetAddress.getByName(ip);
-            System.out.println("Conecting to: " + ipServer.toString() +":" +port);
-
-            DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
+            DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ip, port);
             this.socket.send(outPacket);
 
+            this.socket.setSoTimeout(1000);
+
+
+            //Waits Ack
+
+            byte[] inBuffer = new byte[20];
+            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
+            this.socket.receive(inPacket);
 
 
         }
-        catch (Exception e){
+        catch (SocketTimeoutException e) {
+
+            sendSyn(ip,port,seq,files);
+            System.out.println("timeout");
+        }
+
+         catch (Exception e){
             e.printStackTrace();
         }
     }

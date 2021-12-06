@@ -1,22 +1,33 @@
 import java.io.File;
 import java.io.IOException;
+import java.lang.instrument.Instrumentation;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
+
 
 public class FFSync {
+
 
     private int port = 8888;
     private String folderPath;
     private List<String> ips;
-
+    private List<FileIP> allFiles;
+    private int seq = 0;
+    private List<Boolean> syncronized;
 
 
     public FFSync(String folderPath, List<String> ips){
 
         String currentPath = null;
+        this.allFiles = new ArrayList<>();
         try {
             currentPath = new File(".").getCanonicalPath();
             this.folderPath = currentPath + "/" + folderPath;
@@ -24,8 +35,11 @@ public class FFSync {
             e.printStackTrace();
         }
 
+        this.seq = 0;
 
         this.ips = ips;
+
+        this.syncronized = new ArrayList<>();
 
     }
 
@@ -40,10 +54,31 @@ public class FFSync {
     }
 
 
+    public boolean isSync(){
+
+        return this.ips.size() - 2 == this.syncronized.size(); //remove -2
+    }
+
+
+    public List<FileIP> neededFilesCalculator(){
+        List<File> files= Arrays.asList(getFiles());
+        List<String> filesNames = files.stream().map(f -> f.getName()).collect(Collectors.toList());
+        List<FileIP> needed = new ArrayList<>();
+        List<String> neededAux = new ArrayList<>();
+
+        for(FileIP fi : this.allFiles){
+            if(!filesNames.contains(fi.getFile().getName()) && !neededAux.contains(fi.getFile().getName())){
+                needed.add(fi);
+                neededAux.add(fi.getFile().getName());
+            }
+        }
+
+        return needed;
+    }
+
     public static void main (String[] args){
 
-
-
+            //parse arguments
 
             String folder = args[0];
             List<String> ips = new ArrayList<>();
@@ -52,10 +87,7 @@ public class FFSync {
                 ips.add(args[i]);
             }
 
-
             FFSync ffSync = new FFSync(folder,ips);
-
-
 
 
         try {
@@ -69,7 +101,7 @@ public class FFSync {
             DatagramSocket requestSocket = new DatagramSocket(requestPort);
 
 
-            FTR ftr = new FTR(requestSocket,ffSync.folderPath);
+            FTR ftr = new FTR(requestSocket,ffSync.folderPath,ffSync.allFiles,ffSync.syncronized);
 
             RequestHandler rq = new RequestHandler();
 
@@ -77,7 +109,20 @@ public class FFSync {
 
             t.start();
 
-            rq.sendFile(ip ,port,0,ffSync.getFiles()[0]);
+            rq.sendSyn(InetAddress.getByName(ip) ,port,ffSync.seq,ffSync.getFiles());
+
+
+            //waits for synchronization
+
+            while(!ffSync.isSync()){
+               Thread.sleep(10); //Try to remove the sleep with conditions
+            }
+
+            List<FileIP> neededFiles = ffSync.neededFilesCalculator();
+
+            System.out.println(neededFiles);
+
+
 
 
 
