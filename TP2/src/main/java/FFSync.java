@@ -56,7 +56,7 @@ public class FFSync {
 
     public boolean isSync(){
 
-        return this.ips.size() - 2 == this.syncronized.size(); //remove -2
+        return this.ips.size() == this.syncronized.size(); //remove -2
     }
 
 
@@ -92,13 +92,12 @@ public class FFSync {
 
         try {
 
-            int requestPort = Integer.parseInt(args[2]);
+            int port = 8888;
 
             String ip = ffSync.ips.get(0);
 
-            int port = Integer.parseInt(args[3]);
 
-            DatagramSocket requestSocket = new DatagramSocket(requestPort);
+            DatagramSocket requestSocket = new DatagramSocket(port);
 
 
             FTR ftr = new FTR(requestSocket,ffSync.folderPath,ffSync.allFiles,ffSync.syncronized,port);
@@ -129,9 +128,7 @@ public class FFSync {
             }
 
 
-
-
-
+            
 
         }catch (Exception e){
             e.printStackTrace();
