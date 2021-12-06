@@ -1,5 +1,4 @@
 import java.io.*;
-import java.lang.instrument.Instrumentation;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -19,13 +18,16 @@ public class RequestHandler implements Runnable {
     private  final int dataSize = 1400;
     private List<FileIP> allFiles;
     private List<Boolean> syncronized;
+    private int port;
 
 
 
 
 
-    public RequestHandler  (DatagramPacket inPacket, String folderPath, Map<Integer,TranferState> tfs,List<FileIP> allFiles,List<Boolean> syncronized) {
+    public RequestHandler  (DatagramPacket inPacket, String folderPath, Map<Integer,TranferState> tfs,List<FileIP> allFiles,List<Boolean> syncronized,int port) {
         this.inPacket = inPacket;
+
+        this.port = port;
 
         this.syncronized = syncronized;
 
@@ -75,7 +77,7 @@ public class RequestHandler implements Runnable {
 
             for(int i = 0; i < files.length; i++){
 
-                FileIP fi = new FileIP(files[i],this.inPacket.getAddress().toString());
+                FileIP fi = new FileIP(files[i],this.inPacket.getAddress().toString().substring(1));
                 this.allFiles.add(fi);
             }
 
@@ -102,6 +104,22 @@ public class RequestHandler implements Runnable {
 
         int seq = bb.getInt();
         int block = bb.getInt();
+
+
+    }
+
+    public void getRead(ByteBuffer bb){
+
+        int seq = bb.getInt();
+
+        CharBuffer ch = bb.asCharBuffer();
+        String fileName = ch.toString();
+
+        sendACK(this.inPacket.getAddress(),this.inPacket.getPort(),seq,0);
+
+        File f = new File(fileName.trim());
+
+        sendFile(this.inPacket.getAddress().toString().substring(1),this.port,seq,f);
 
 
     }
@@ -250,6 +268,43 @@ public class RequestHandler implements Runnable {
         }
 
     }
+
+    public void sendRead(String ip, int port,int seq, String filename){
+
+        final int identifier = 4;
+
+        try {
+
+
+            ByteBuffer buff = ByteBuffer.allocate(8 + 2 * filename.length()).
+                    putInt(identifier).
+                    putInt(seq);
+
+            CharBuffer cbuff = buff.asCharBuffer();
+
+            cbuff.put(filename);
+
+
+            byte[] packet = buff.array();
+
+
+            InetAddress ipServer = InetAddress.getByName(ip);
+            DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
+            this.socket.send(outPacket);
+
+            //receive ACk
+
+            byte[] inBuffer = new byte[20];
+            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
+            this.socket.receive(inPacket);
+
+    }
+        catch (Exception e){
+        e.printStackTrace();
+    }
+
+
+}
 
 
     public void sendWrite(String ip, int port,int seq, int blocks, String filename){
@@ -436,7 +491,7 @@ public class RequestHandler implements Runnable {
                 break;
 
             case 4:
-                getFin(bb);
+                getRead(bb);
                 break;
             default:
                 // code block

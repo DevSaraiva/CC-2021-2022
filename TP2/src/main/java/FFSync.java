@@ -101,7 +101,7 @@ public class FFSync {
             DatagramSocket requestSocket = new DatagramSocket(requestPort);
 
 
-            FTR ftr = new FTR(requestSocket,ffSync.folderPath,ffSync.allFiles,ffSync.syncronized);
+            FTR ftr = new FTR(requestSocket,ffSync.folderPath,ffSync.allFiles,ffSync.syncronized,port);
 
             RequestHandler rq = new RequestHandler();
 
@@ -120,9 +120,10 @@ public class FFSync {
 
             List<FileIP> neededFiles = ffSync.neededFilesCalculator();
 
-            System.out.println(neededFiles);
+            for(FileIP fi :neededFiles){
+                rq.sendRead(fi.getIp(),port,ffSync.seq,fi.getFile().getPath());
 
-
+            }
 
 
 
