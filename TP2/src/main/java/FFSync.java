@@ -78,15 +78,25 @@ public class FFSync {
 
     public static void main (String[] args){
 
-            //parse arguments
 
+            //HTTP
+            try {
+                System.out.println("Starting HTTP server connection on localhost:8080");
+                HttpServer httpServer = new HttpServer();
+                String[] logPhrases = {"1", "2", "3", "4", "5", "6"};       //TODO: neste caso, cada indice vai ter um log
+                httpServer.startHTTP(logPhrases);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
+            //parse arguments
             String folder = args[0];
             List<String> ips = new ArrayList<>();
 
             for(int i = 1; i < args.length; i++){
                 ips.add(args[i]);
             }
-
             FFSync ffSync = new FFSync(folder,ips);
 
 
@@ -106,23 +116,21 @@ public class FFSync {
             RequestHandler rq = new RequestHandler();
 
             Thread t = new Thread(ftr);
-
             t.start();
 
             //Synchronize with all peers
 
-            for(int i = 0; i < ffSync.ips.size()-2; i++){
-                rq.sendSyn(InetAddress.getByName(ffSync.ips.get(0)) ,port,ffSync.seq,ffSync.getFiles());
+
+            for(int i = 0; i < ffSync.ips.size(); i++){
+                rq.sendSyn(InetAddress.getByName(ffSync.ips.get(i)) ,port,ffSync.seq,ffSync.getFiles());
                 ffSync.seq++;
             }
 
 
             //waits for synchronization
-
             while(!ffSync.isSync()){
                Thread.sleep(10); //Try to remove the sleep with conditions
             }
-
             List<FileIP> neededFiles = ffSync.neededFilesCalculator();
 
             for(FileIP fi : neededFiles){
@@ -131,10 +139,11 @@ public class FFSync {
                 System.out.println("Reading file:" + fi.getFile().getName());
             }
 
-
         }catch (Exception e){
             e.printStackTrace();
         }
+
+
 
 
 
