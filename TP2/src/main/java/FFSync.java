@@ -56,7 +56,7 @@ public class FFSync {
 
     public boolean isSync(){
 
-        return this.ips.size() == this.syncronized.size(); //remove -2
+        return this.ips.size()-2 == this.syncronized.size(); //remove -2
     }
 
 
@@ -92,12 +92,13 @@ public class FFSync {
 
         try {
 
-            int port = 8888;
+            int port = Integer.parseInt(args[3]);
+            int requestPort = Integer.parseInt(args[2]);
 
             String ip = ffSync.ips.get(0);
 
 
-            DatagramSocket requestSocket = new DatagramSocket(port);
+            DatagramSocket requestSocket = new DatagramSocket(requestPort);
 
 
             FTR ftr = new FTR(requestSocket,ffSync.folderPath,ffSync.allFiles,ffSync.syncronized,port);
@@ -110,8 +111,8 @@ public class FFSync {
 
             //Synchronize with all peers
 
-            for(int i = 0; i < ffSync.ips.size(); i++){
-                rq.sendSyn(InetAddress.getByName(ffSync.ips.get(i)) ,port,ffSync.seq,ffSync.getFiles());
+            for(int i = 0; i < ffSync.ips.size()-2; i++){
+                rq.sendSyn(InetAddress.getByName(ffSync.ips.get(0)) ,port,ffSync.seq,ffSync.getFiles());
                 ffSync.seq++;
             }
 
@@ -130,7 +131,7 @@ public class FFSync {
                 System.out.println("Reading file:" + fi.getFile().getName());
             }
 
-            
+
         }catch (Exception e){
             e.printStackTrace();
         }
