@@ -56,7 +56,7 @@ public class FFSync {
 
     public boolean isSync(){
 
-        return this.ips.size()-2 == this.syncronized.size(); //remove -2
+        return this.ips.size()-2 == this.syncronized.size(); //remove -3
     }
 
 
@@ -80,7 +80,7 @@ public class FFSync {
 
 
             //HTTP
-            try {
+         /*   try {
                 System.out.println("Starting HTTP server connection on localhost:8080");
                 HttpServer httpServer = new HttpServer();
                 String[] logPhrases = {"1", "2", "3", "4", "5", "6"};       //TODO: neste caso, cada indice vai ter um log
@@ -89,7 +89,7 @@ public class FFSync {
                 e.printStackTrace();
             }
 
-
+*/
             //parse arguments
             String folder = args[0];
             List<String> ips = new ArrayList<>();
@@ -105,11 +105,7 @@ public class FFSync {
             int port = Integer.parseInt(args[3]);
             int requestPort = Integer.parseInt(args[2]);
 
-            String ip = ffSync.ips.get(0);
-
-
             DatagramSocket requestSocket = new DatagramSocket(requestPort);
-
 
             FTR ftr = new FTR(requestSocket,ffSync.folderPath,ffSync.allFiles,ffSync.syncronized,port);
 
@@ -121,7 +117,7 @@ public class FFSync {
             //Synchronize with all peers
 
 
-            for(int i = 0; i < ffSync.ips.size(); i++){
+            for(int i = 0; i < ffSync.ips.size()-2; i++){ //remove -3
                 rq.sendSyn(InetAddress.getByName(ffSync.ips.get(i)) ,port,ffSync.seq,ffSync.getFiles());
                 ffSync.seq++;
             }
@@ -142,7 +138,6 @@ public class FFSync {
         }catch (Exception e){
             e.printStackTrace();
         }
-
 
 
 
