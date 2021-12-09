@@ -12,18 +12,18 @@ import java.util.List;
 // este protocolo ocorre na camada 7 do modelo OSI
 
 public class HttpServer {
-    public void startHTTP( String[] args ) throws Exception {
-        try (ServerSocket serverSocket = new ServerSocket(8080)) {  //using a TCP socket to handle a TCP connection
+    public void startHTTP( String[] logs, int port) throws Exception {
+        try (ServerSocket serverSocket = new ServerSocket(port)) {  //using a TCP socket to handle a TCP connection
             while (true) {
                 try (Socket client = serverSocket.accept()) {   //espera ate poder ter uma conexao de um cliente para aceitar
-                    handleClient(client, args);
+                    handleClient(client, logs);
                 }
             }
         }
     }
 
 
-    private static void handleClient(Socket client, String[] args) throws IOException {
+    private static void handleClient(Socket client, String[] logs) throws IOException {
         System.out.println("Debug: got new client " + client.toString() + "\n");
         BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream())); //ler a request para um buffered reader
 
@@ -53,18 +53,18 @@ public class HttpServer {
         System.out.println(accessLog);
         System.out.println("\nRequest is: \n" + request + "\n");
 
-    //TODO: em vez deste logPhrases, terá que ser passado os logs que é para mostrar no HTTP
+        //TODO: em vez deste logPhrases, terá que ser passado os logs que é para mostrar no HTTP
         //String[] logPhrases = {"1", "2", "3", "4", "5", "6"};       //neste caso, cada indice vai ter um log
         //String[] logPhrasesInHtml = parserToHtml(logPhrases);       //transformar os logs para html atraves do metodo parserToHtml
-        String[] logPhrasesInHtml = parserToHtml(args);
+        //String[] logPhrasesInHtml = parserToHtml(in);
 
         //enviar a resposta para o output stream do cliente
         OutputStream clientOutput = client.getOutputStream();
         clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
         clientOutput.write(("ContentType: text/html\r\n").getBytes());
         clientOutput.write("\r\n".getBytes());
-        //clientOutput.write("<b>Saraivinha das babes!</b>".getBytes());
-        for (String s : logPhrasesInHtml) {
+        //clientOutput.write("<b>Test String!</b>".getBytes());
+        for (String s : logs) {
             clientOutput.write(s.getBytes());
         }
         clientOutput.write("\r\n\r\n".getBytes());
@@ -74,14 +74,16 @@ public class HttpServer {
         System.out.println("Response is: \n" + request + "\n");
     }
 
-
+/*
     //recebe um array de strings e passa cada uma dessas strings para HTML com um break no fim
-    public static String[] parserToHtml(String[] in) {
-        String[] out = new String[in.length];
-        for(int i=0; i<in.length; i++) {
-            out[i] = "<b>" + in[i] + "</b><br>";
+    public static String[] parserToHtml(List<FileIP> in) {
+        String[] out = new String[in.size()];
+        int i = 0;
+        for(FileIP fileIP : in) {
+            out[i] = "<b>" + fileIP.file + "</b><br>";
         }
         return out;
     }
+ */
 
 }
