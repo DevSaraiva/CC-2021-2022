@@ -53,11 +53,6 @@ public class HttpServer {
         System.out.println(accessLog);
         System.out.println("\nRequest is: \n" + request + "\n");
 
-        //TODO: em vez deste logPhrases, terá que ser passado os logs que é para mostrar no HTTP
-        //String[] logPhrases = {"1", "2", "3", "4", "5", "6"};       //neste caso, cada indice vai ter um log
-        //String[] logPhrasesInHtml = parserToHtml(logPhrases);       //transformar os logs para html atraves do metodo parserToHtml
-        //String[] logPhrasesInHtml = parserToHtml(in);
-
         //enviar a resposta para o output stream do cliente
         OutputStream clientOutput = client.getOutputStream();
         clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
@@ -73,17 +68,5 @@ public class HttpServer {
 
         System.out.println("Response is: \n" + request + "\n");
     }
-
-/*
-    //recebe um array de strings e passa cada uma dessas strings para HTML com um break no fim
-    public static String[] parserToHtml(List<FileIP> in) {
-        String[] out = new String[in.size()];
-        int i = 0;
-        for(FileIP fileIP : in) {
-            out[i] = "<b>" + fileIP.file + "</b><br>";
-        }
-        return out;
-    }
- */
 
 }

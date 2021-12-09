@@ -77,17 +77,6 @@ public class FFSync {
 
 
     //passar a lista de ficheiros em formato de uma lista de strings para ser disposto no servidor HTTP
-    public String[] filesFromClient () {
-        String[] out = new String[this.allFiles.size()];
-        int i = 0;
-        for (FileIP allFile : this.allFiles) {
-            //System.out.println(allFile.file);
-            out[i] = "<b>" + allFile.file + "</b><br>";
-        }
-        return out;
-    }
-
-
     public String[] fileArrayToStringArray(File[] files) {
         String[] names = new String[files.length];
         for (int i = 0; i < files.length; i++) {
