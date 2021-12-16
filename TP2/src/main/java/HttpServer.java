@@ -6,19 +6,31 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Objects;
 
 
 // este protocolo ocorre na camada 7 do modelo OSI
 
-public class HttpServer {
-    public void startHTTP( String[] logs, int port) throws Exception {
+public class HttpServer implements Runnable {
+    private String[] logs;
+    private int port;
+    
+    
+    public HttpServer (String[] logs, int port) {
+        this.logs = logs;
+        this.port = port;
+    }
+    
+    
+    public void run() {
         try (ServerSocket serverSocket = new ServerSocket(port)) {  //using a TCP socket to handle a TCP connection
             while (true) {
                 try (Socket client = serverSocket.accept()) {   //espera ate poder ter uma conexao de um cliente para aceitar
                     handleClient(client, logs);
                 }
             }
+        }catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -53,18 +65,32 @@ public class HttpServer {
         System.out.println(accessLog);
         System.out.println("\nRequest is: \n" + request + "\n");
 
-        //enviar a resposta para o output stream do cliente
-        OutputStream clientOutput = client.getOutputStream();
-        clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
-        clientOutput.write(("ContentType: text/html\r\n").getBytes());
-        clientOutput.write("\r\n".getBytes());
-        //clientOutput.write("<b>Test String!</b>".getBytes());
-        for (String s : logs) {
-            clientOutput.write(s.getBytes());
+        if (!Objects.equals(path, "/")) {
+            OutputStream clientOutput = client.getOutputStream();
+            clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
+            clientOutput.write(("ContentType: text/html\r\n").getBytes());
+            clientOutput.write("\r\n".getBytes());
+            clientOutput.write("<b>404 Not found</b>".getBytes());
+            clientOutput.write("\r\n\r\n".getBytes());
+            clientOutput.flush();
+            client.close();
         }
-        clientOutput.write("\r\n\r\n".getBytes());
-        clientOutput.flush();
-        client.close();
+
+        else {
+            //enviar a resposta para o output stream do cliente
+            OutputStream clientOutput = client.getOutputStream();
+            clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
+            clientOutput.write(("ContentType: text/html\r\n").getBytes());
+            clientOutput.write("\r\n".getBytes());
+            //clientOutput.write("<b>Test String!</b>".getBytes());
+            for (String s : logs) {
+                clientOutput.write(s.getBytes());
+            }
+            clientOutput.write("\r\n\r\n".getBytes());
+            clientOutput.flush();
+            client.close();
+        }
+
 
         System.out.println("Response is: \n" + request + "\n");
     }
