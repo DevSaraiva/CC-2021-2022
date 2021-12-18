@@ -141,6 +141,7 @@ public class RequestHandler implements Runnable {
 
         this.l.lock();
         try{
+            System.out.println("new seq: " + seq);
             this.tfs.put(seq,tf);
         }finally {
             this.l.unlock();
@@ -190,18 +191,19 @@ public class RequestHandler implements Runnable {
 
         try{
             tf = this.tfs.get(seq);
+
+            byte[] dataFinal = new byte[length];
+
+            for (int i = 0; i < length; i++) {
+                dataFinal[i] = data[i + 16];
+            }
+
+            tf.addBytes(dataFinal);
+            tf.increaseBlocks();
+
         }finally {
             this.l.unlock();
         }
-
-        byte[] dataFinal = new byte[length];
-
-        for (int i = 0; i < length; i++) {
-            dataFinal[i] = data[i + 16];
-        }
-
-        tf.addBytes(dataFinal);
-        tf.increaseBlocks();
 
 
         if (tf.isFinished(block)) {

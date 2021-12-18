@@ -21,7 +21,7 @@ public class FTR implements Runnable {
     Map<String,Map<Integer,TranferState>> transfers ;
 
 
-    private final static int MTU = 1500;
+    private final static int MTU = 5000;
 
 
     public FTR(DatagramSocket requestSocket, String folderPath, List<FileIP> allFiles, List<Boolean> syncronized, int port){
