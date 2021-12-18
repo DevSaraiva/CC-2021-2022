@@ -18,9 +18,6 @@ public class FTR implements Runnable {
     private List<FileIP> allFiles;
     private List<Boolean> syncronized;
     private int port;
-
-
-
     Map<String,Map<Integer,TranferState>> transfers ;
 
 

@@ -82,7 +82,6 @@ public class HttpServer implements Runnable {
             clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
             clientOutput.write(("ContentType: text/html\r\n").getBytes());
             clientOutput.write("\r\n".getBytes());
-            //clientOutput.write("<b>Test String!</b>".getBytes());
             for (String s : logs) {
                 clientOutput.write(s.getBytes());
             }

@@ -22,7 +22,14 @@ public class TranferState {
     }
 
     public String getFileName() {
-        return fileName;
+        this.l.lock();
+        try{
+            return fileName;
+
+        }
+        finally{
+            this.l.unlock();
+        }
     }
 
     public int getTotalBlocks() {
@@ -43,7 +50,13 @@ public class TranferState {
     }
 
     public byte[] getBytes() {
-        return bytes;
+        this.l.lock();
+        try{
+            return bytes;
+        }
+        finally{
+            this.l.unlock();
+        }
     }
 
     public void addBytes(byte[] bytes){
@@ -64,9 +77,6 @@ public class TranferState {
     }
 
     public boolean  isFinished(int actualBlocks){
-
-
-
 
         Boolean res;
         this.l.lock();

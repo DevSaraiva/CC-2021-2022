@@ -1,3 +1,5 @@
+import jdk.swing.interop.SwingInterOpUtils;
+
 import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
@@ -19,7 +21,7 @@ public class RequestHandler implements Runnable {
     private List<FileIP> allFiles;
     private List<Boolean> syncronized;
     private int port;
-
+    private final static int MTU = 1500;
 
 
 
@@ -125,32 +127,72 @@ public class RequestHandler implements Runnable {
     }
 
     public void getWrite(ByteBuffer bb){
+
         int seq = bb.getInt();
         int blocks = bb.getInt();
 
-
-
         CharBuffer ch = bb.asCharBuffer();
+
         String fileName = ch.toString();
 
         TranferState tf = new TranferState(fileName,blocks);
 
-        this.tfs.put(seq,tf);
+
+
+        this.l.lock();
+        try{
+            this.tfs.put(seq,tf);
+        }finally {
+            this.l.unlock();
+        }
+
+
 
         sendACK(this.inPacket.getAddress(),this.inPacket.getPort(),seq,blocks);
+
+
+        //receive all packets from the file
+
+        for(int i = 0; i <= blocks; i++){
+
+            byte[] inBuffer = new byte[MTU];
+            DatagramPacket packet = new DatagramPacket(inBuffer, inBuffer.length);
+            try {
+                this.socket.receive(packet);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+            ByteBuffer bb2 = ByteBuffer.wrap(inBuffer);
+            int id = bb2.getInt();
+            if(id == 3) getData(bb2,packet.getAddress(),packet.getPort());
+
+        }
 
 
     }
 
 
-    public void getData(ByteBuffer bb) {
+    public void getData(ByteBuffer bb, InetAddress ip, int port) {
+
+
 
         int length = bb.getInt();
         int seq = bb.getInt();
         int block = bb.getInt();
         byte[] data = bb.array();
 
-        TranferState tf = this.tfs.get(seq);
+
+        TranferState tf = null;
+
+        this.l.lock();
+
+        try{
+            tf = this.tfs.get(seq);
+        }finally {
+            this.l.unlock();
+        }
 
         byte[] dataFinal = new byte[length];
 
@@ -169,16 +211,17 @@ public class RequestHandler implements Runnable {
 
 
                 try {
+
                     File outputFile = new File(path.trim());
                     FileOutputStream outputStream = new FileOutputStream(outputFile);
-                    outputStream.write(tf.getBytes());  // Write the bytes and you're done.
+                    outputStream.write(tf.getBytes());
 
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
 
-            sendACK(this.inPacket.getAddress(),this.inPacket.getPort(),seq,block);
+            sendACK(ip,port,seq,block);
 
         }
 
@@ -298,9 +341,12 @@ public class RequestHandler implements Runnable {
 }
 
 
-    public void sendWrite(String ip, int port,int seq, int blocks, String filename){
+    public int sendWrite(String ip, int port,int seq, int blocks, String filename){
 
         final int identifier = 2;
+
+        int portToReceive = 0;
+
 
         try {
 
@@ -324,18 +370,20 @@ public class RequestHandler implements Runnable {
 
             this.socket.setSoTimeout(1000);
 
-
-
             //Waits Ack
 
             byte[] inBuffer = new byte[20];
-            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
-            this.socket.receive(inPacket);
+            DatagramPacket packetAck = new DatagramPacket(inBuffer, inBuffer.length);
+            this.socket.receive(packetAck);
+
+            portToReceive = packetAck.getPort();
+
+
 
 
         }
         catch (SocketTimeoutException e) {
-
+            System.out.println("resending Write");
             sendWrite(ip,port,seq,blocks,filename);
         }
 
@@ -344,6 +392,7 @@ public class RequestHandler implements Runnable {
         }
 
 
+        return portToReceive;
     }
 
 
@@ -359,7 +408,6 @@ public class RequestHandler implements Runnable {
                     putInt(seq).
                     putInt(block).
                     put(data).array();
-
 
             InetAddress ipServer = InetAddress.getByName(ip);
             DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
@@ -401,7 +449,7 @@ public class RequestHandler implements Runnable {
         int blocks = (int)Math.ceil(fileContent.length/this.dataSize);
 
 
-        sendWrite(ip,port,seq,blocks,file.getName());
+        int clientHandlerPort = sendWrite(ip,port,seq,blocks,file.getName());
 
         // Slicing the data to datasize packets
 
@@ -426,7 +474,7 @@ public class RequestHandler implements Runnable {
 
             k = 0;
 
-            sendData(ip,port,seq,i,data);
+            sendData(ip,clientHandlerPort,seq,i,data);
 
         }
 
@@ -441,7 +489,7 @@ public class RequestHandler implements Runnable {
             k++;
         }
 
-        sendData(ip,port,seq,i,data);
+        sendData(ip,clientHandlerPort,seq,i,data);
 
 
     }
@@ -452,8 +500,6 @@ public class RequestHandler implements Runnable {
     public void run() {
 
         byte[] inBuffer = this.inPacket.getData();
-
-
         ByteBuffer bb = ByteBuffer.wrap(inBuffer);
 
         int identifier = bb.getInt();
@@ -462,23 +508,16 @@ public class RequestHandler implements Runnable {
             case 0:
                 getSyn(bb);
                 break;
-            case 1:
-                getAck(bb);
-                break;
 
             case 2:
                 getWrite(bb);
-                break;
-
-            case 3:
-                getData(bb);
                 break;
 
             case 4:
                 getRead(bb);
                 break;
             default:
-                // code block
+                System.out.println("NO MATCH");
         }
 
     }

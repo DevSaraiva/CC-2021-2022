@@ -77,6 +77,7 @@ public class FFSync {
 
 
     //passar a lista de ficheiros em formato de uma lista de strings para ser disposto no servidor HTTP
+
     public String[] fileArrayToStringArray(File[] files) {
         String[] names = new String[files.length];
         for (int i = 0; i < files.length; i++) {
@@ -103,17 +104,12 @@ public class FFSync {
             System.out.println("Starting HTTP server connection on localhost:" + args[4]);
 
             String[] formattedLogs = ffSync.fileArrayToStringArray(ffSync.getFiles());      //tentar por o getFiles no HttpServer.java para dar load sempre que se faz um GET (por causa do watchfolder)
-            //System.out.println("Logs: " + Arrays.toString(formattedLogs));
             HttpServer httpServer = new HttpServer(formattedLogs, Integer.parseInt(args[4]));
-            //httpServer.startHTTP(formattedLogs, Integer.parseInt(args[4]));
             Thread t1 = new Thread(httpServer);
             t1.start();
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
-
 
         try {
 
@@ -140,7 +136,7 @@ public class FFSync {
 
             //waits for synchronization
             while(!ffSync.isSync()){
-               Thread.sleep(10); //Try to remove the sleep with conditions
+               Thread.sleep(100);
             }
             List<FileIP> neededFiles = ffSync.neededFilesCalculator();
 
@@ -149,6 +145,9 @@ public class FFSync {
                 ffSync.seq++;
                 System.out.println("Reading file:" + fi.getFile().getName());
             }
+
+
+
 
         }catch (Exception e){
             e.printStackTrace();
