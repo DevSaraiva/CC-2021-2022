@@ -59,6 +59,8 @@ public class FFSync {
     }
 
 
+    //calculate the files missing
+
     public List<FileIP> neededFilesCalculator(){
         List<File> files= Arrays.asList(getFiles());
         List<String> filesNames = files.stream().map(f -> f.getName()).collect(Collectors.toList());

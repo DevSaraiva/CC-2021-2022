@@ -17,7 +17,8 @@ import java.nio.file.WatchService;
 public class MainWatch {
 
     public static void watchDirectoryPath(Path path) {
-        // Sanity check - Check if path is a folder
+
+        // Check if path is a folder
         try {
             Boolean isFolder = (Boolean) Files.getAttribute(path,
                     "basic:isDirectory", NOFOLLOW_LINKS);
