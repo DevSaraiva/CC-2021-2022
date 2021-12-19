@@ -14,8 +14,7 @@ public class TranferState {
     private int actualBlocks;
     private byte[] bytes;
 
-
-    public  TranferState(String fileName, int totalBlocks){
+    public TranferState(String fileName, int totalBlocks) {
         this.fileName = fileName;
         this.totalBlocks = totalBlocks;
         this.bytes = new byte[0];
@@ -23,11 +22,10 @@ public class TranferState {
 
     public String getFileName() {
         this.l.lock();
-        try{
+        try {
             return fileName;
 
-        }
-        finally{
+        } finally {
             this.l.unlock();
         }
     }
@@ -40,63 +38,56 @@ public class TranferState {
         return actualBlocks;
     }
 
-    public  void increaseBlocks(){
+    public void increaseBlocks() {
         this.l.lock();
-        try{
+        try {
             this.actualBlocks++;
-        }finally {
+        } finally {
             this.l.unlock();
         }
     }
 
     public byte[] getBytes() {
         this.l.lock();
-        try{
+        try {
             return bytes;
-        }
-        finally{
+        } finally {
             this.l.unlock();
         }
     }
 
-    public void addBytes(byte[] bytes){
+    public void addBytes(byte[] bytes) {
 
         this.l.lock();
         try {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             outputStream.write(this.bytes);
             outputStream.write(bytes);
             byte res[] = outputStream.toByteArray();
             this.bytes = res;
         } catch (IOException e) {
             e.printStackTrace();
-        }
-        finally {
+        } finally {
             this.l.unlock();
         }
     }
 
-    public boolean  isFinished(int actualBlocks){
+    public boolean isFinished(int actualBlocks) {
 
         Boolean res;
         this.l.lock();
 
-        try{
-              res = this.actualBlocks == this.totalBlocks + 1;
-        }
-        finally {
+        try {
+            res = this.actualBlocks == this.totalBlocks + 1;
+        } finally {
 
             this.l.unlock();
         }
         return res;
     }
 
-    public String toString(){
+    public String toString() {
         return this.fileName + ' ' + this.actualBlocks;
     }
 
-
 }
-
-
-
