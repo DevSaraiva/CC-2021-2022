@@ -17,12 +17,13 @@ public class FTR implements Runnable {
     private List<FileIP> allFiles;
     private List<Boolean> syncronized;
     private int port;
-    Map<String, Map<Integer, TranferState>> transfers;
+    private Map<String, Map<Integer, TranferState>> transfers;
+    private List<Boolean> receivedFiles;
 
     private final static int MTU = 5000;
 
     public FTR(DatagramSocket requestSocket, String folderPath, List<FileIP> allFiles, List<Boolean> syncronized,
-            int port) {
+            int port, List<Boolean> receivedFiles) {
 
         this.requestSocket = requestSocket;
         this.folderPath = folderPath;
@@ -30,6 +31,7 @@ public class FTR implements Runnable {
         this.allFiles = allFiles;
         this.syncronized = syncronized;
         this.port = port;
+        this.receivedFiles = receivedFiles;
 
     }
 
@@ -54,7 +56,7 @@ public class FTR implements Runnable {
                 }
 
                 RequestHandler rh = new RequestHandler(inPacket, this.folderPath, tfs, this.allFiles, this.syncronized,
-                        this.port); // send received packet to new thread to be treated
+                        this.port, this.receivedFiles); // send received packet to new thread to be treated
                 Thread t = new Thread(rh);
 
                 t.start();

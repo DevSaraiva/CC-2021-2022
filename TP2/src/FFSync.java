@@ -20,6 +20,7 @@ public class FFSync {
     private List<FileIP> allFiles;
     private int seq = 0;
     private List<Boolean> syncronized;
+    private List<Boolean> receivedFiles;
 
     public FFSync(String folderPath, List<String> ips) {
 
@@ -37,6 +38,8 @@ public class FFSync {
         this.ips = ips;
 
         this.syncronized = new ArrayList<>();
+
+        this.receivedFiles = new ArrayList<>();
 
     }
 
@@ -132,7 +135,8 @@ public class FFSync {
 
             DatagramSocket requestSocket = new DatagramSocket(requestPort);
 
-            FTR ftr = new FTR(requestSocket, ffSync.folderPath, ffSync.allFiles, ffSync.syncronized, port);
+            FTR ftr = new FTR(requestSocket, ffSync.folderPath, ffSync.allFiles, ffSync.syncronized, port,
+                    ffSync.receivedFiles);
 
             RequestHandler rq = new RequestHandler();
 
@@ -156,6 +160,18 @@ public class FFSync {
                 ffSync.seq++;
                 System.out.println("Reading file:" + fi.getFile().getName());
             }
+
+            // waits for the reception of all files
+
+            while (ffSync.receivedFiles.size() != neededFiles.size()) {
+                Thread.sleep(100);
+            }
+
+            System.out.println("\nInitial tranfer finished\n");
+
+            // starts watching for modifications in the folder
+
+            /////////////////////////
 
         } catch (Exception e) {
             e.printStackTrace();

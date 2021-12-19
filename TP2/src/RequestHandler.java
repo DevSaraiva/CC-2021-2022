@@ -21,9 +21,11 @@ public class RequestHandler implements Runnable {
     private List<Boolean> syncronized;
     private int port;
     private final static int MTU = 1500;
+    private List<Boolean> receivedFiles;
 
     public RequestHandler(DatagramPacket inPacket, String folderPath, Map<Integer, TranferState> tfs,
-            List<FileIP> allFiles, List<Boolean> syncronized, int port) {
+            List<FileIP> allFiles, List<Boolean> syncronized, int port, List<Boolean> receivedFiles) {
+
         this.inPacket = inPacket;
 
         this.port = port;
@@ -42,6 +44,8 @@ public class RequestHandler implements Runnable {
         this.tfs = tfs;
 
         this.folderPath = folderPath;
+
+        this.receivedFiles = receivedFiles;
 
     }
 
@@ -153,6 +157,8 @@ public class RequestHandler implements Runnable {
                 getData(bb2, packet.getAddress(), packet.getPort());
 
         }
+
+        this.receivedFiles.add(true);
 
     }
 
