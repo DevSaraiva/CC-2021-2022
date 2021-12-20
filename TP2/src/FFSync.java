@@ -43,12 +43,24 @@ public class FFSync {
 
     }
 
-    public File[] getFiles() {
+    public File[] getFiles(String folderPath) {
 
-        File folder = new File(this.folderPath);
-        File[] files = folder.listFiles();
+        File folder = new File(folderPath);
+        List<File> files = new ArrayList<>();
 
-        return files;
+        for (File f : folder.listFiles()) {
+            if (f.isDirectory()) {
+                List<File> newFiles = Arrays.asList(getFiles(f.getPath()));
+                files.addAll(newFiles);
+            } else {
+                files.add(f);
+            }
+        }
+
+        File[] res = new File[files.size()];
+        files.toArray(res);
+
+        return res;
     }
 
     public boolean isSync() {
@@ -58,9 +70,9 @@ public class FFSync {
 
     // calculate the files missing
 
-    public List<FileIP> neededFilesCalculator() {
+    public List<FileIP> neededFilesCalculator(String folderPath) {
 
-        List<File> myFiles = Arrays.asList(getFiles());
+        List<File> myFiles = Arrays.asList(getFiles(folderPath));
         List<FileIP> needed = new ArrayList<>();
 
         for (FileIP fi : this.allFiles) {
@@ -117,10 +129,11 @@ public class FFSync {
         try {
             System.out.println("Starting HTTP server connection on localhost:" + args[4]);
 
-            String[] formattedLogs = ffSync.fileArrayToStringArray(ffSync.getFiles()); // tentar por o getFiles no
-                                                                                       // HttpServer.java para dar load
-                                                                                       // sempre que se faz um GET (por
-                                                                                       // causa do watchfolder)
+            String[] formattedLogs = ffSync.fileArrayToStringArray(ffSync.getFiles(ffSync.folderPath)); // tentar por o
+                                                                                                        // getFiles no
+            // HttpServer.java para dar load
+            // sempre que se faz um GET (por
+            // causa do watchfolder)
             HttpServer httpServer = new HttpServer(formattedLogs, Integer.parseInt(args[4]));
             Thread t1 = new Thread(httpServer);
             t1.start();
@@ -145,7 +158,8 @@ public class FFSync {
 
             // Synchronize with all peers
             for (int i = 0; i < ffSync.ips.size() - 3; i++) { // remove -3
-                rq.sendSyn(InetAddress.getByName(ffSync.ips.get(i)), port, ffSync.seq, ffSync.getFiles());
+                rq.sendSyn(InetAddress.getByName(ffSync.ips.get(i)), port, ffSync.seq,
+                        ffSync.getFiles(ffSync.folderPath));
                 ffSync.seq++;
             }
 
@@ -153,10 +167,13 @@ public class FFSync {
             while (!ffSync.isSync()) {
                 Thread.sleep(100);
             }
-            List<FileIP> neededFiles = ffSync.neededFilesCalculator();
+            List<FileIP> neededFiles = ffSync.neededFilesCalculator(ffSync.folderPath);
 
             for (FileIP fi : neededFiles) {
-                rq.sendRead(fi.getIp(), port, ffSync.seq, fi.getFile().getPath());
+
+                String file = file = fi.getFile().getParentFile().getName() + "/" + fi.getFile().getName();
+
+                rq.sendRead(fi.getIp(), port, ffSync.seq, file.trim());
                 ffSync.seq++;
                 System.out.println("Reading file:" + fi.getFile().getName());
             }

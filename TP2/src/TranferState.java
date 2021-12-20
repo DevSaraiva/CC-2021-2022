@@ -10,20 +10,30 @@ public class TranferState {
 
     private Lock l = new ReentrantLock();
     private String fileName;
+    private String subfolder;
     private int totalBlocks;
     private int actualBlocks;
     private byte[] bytes;
 
-    public TranferState(String fileName, int totalBlocks) {
+    public TranferState(String fileName, int totalBlocks, String subfolder) {
         this.fileName = fileName;
         this.totalBlocks = totalBlocks;
         this.bytes = new byte[0];
+        this.subfolder = subfolder;
     }
 
     public String getFileName() {
         this.l.lock();
         try {
-            return fileName;
+            String fileName = null;
+
+            if (this.subfolder == null) {
+                fileName = this.fileName;
+            } else {
+                fileName = this.subfolder + "/" + this.fileName;
+            }
+
+            return fileName.trim();
 
         } finally {
             this.l.unlock();
@@ -36,6 +46,10 @@ public class TranferState {
 
     public int getActualBlocks() {
         return actualBlocks;
+    }
+
+    public String getSubFolder() {
+        return this.subfolder;
     }
 
     public void increaseBlocks() {
@@ -83,6 +97,15 @@ public class TranferState {
 
             this.l.unlock();
         }
+        return res;
+    }
+
+    public boolean existSubfolder() {
+        boolean res = false;
+
+        if (this.subfolder != null)
+            res = true;
+
         return res;
     }
 

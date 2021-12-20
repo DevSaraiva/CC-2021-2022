@@ -113,9 +113,22 @@ public class RequestHandler implements Runnable {
 
         sendACK(this.inPacket.getAddress(), this.inPacket.getPort(), seq, 0);
 
-        File f = new File(fileName.trim());
+        File folder = new File(folderPath);
 
-        sendFile(this.inPacket.getAddress().toString().substring(1), this.port, seq, f);
+        String file = null;
+
+        if (fileName.contains(folder.getName())) {
+
+            file = folder.getParent() + "/" + fileName;
+            File f = new File(file.trim());
+            sendFile(this.inPacket.getAddress().toString().substring(1), this.port, seq, f, false);
+
+        } else {
+
+            file = folderPath + "/" + fileName;
+            File f = new File(file.trim());
+            sendFile(this.inPacket.getAddress().toString().substring(1), this.port, seq, f, true);
+        }
 
     }
 
@@ -128,7 +141,14 @@ public class RequestHandler implements Runnable {
 
         String fileName = ch.toString();
 
-        TranferState tf = new TranferState(fileName, blocks);
+        TranferState tf = null;
+
+        if (fileName.contains("/")) {
+            String[] strings = fileName.split("/");
+            tf = new TranferState(strings[1], blocks, strings[0]);
+        } else {
+            tf = new TranferState(fileName, blocks, null);
+        }
 
         this.l.lock();
         try {
@@ -194,6 +214,18 @@ public class RequestHandler implements Runnable {
             String path = this.folderPath + '/' + tf.getFileName();
 
             try {
+
+                if (tf.existSubfolder()) {
+
+                    String pathFolder = this.folderPath + "/" + tf.getSubFolder();
+
+                    File f = new File(pathFolder.trim());
+                    try {
+                        f.mkdir();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
 
                 File outputFile = new File(path.trim());
                 FileOutputStream outputStream = new FileOutputStream(outputFile);
@@ -370,7 +402,7 @@ public class RequestHandler implements Runnable {
 
     }
 
-    public void sendFile(String ip, int port, int seq, File file) {
+    public void sendFile(String ip, int port, int seq, File file, boolean existSub) {
 
         byte[] fileContent = null;
         try {
@@ -381,7 +413,15 @@ public class RequestHandler implements Runnable {
 
         int blocks = (int) Math.ceil(fileContent.length / this.dataSize);
 
-        int clientHandlerPort = sendWrite(ip, port, seq, blocks, file.getName());
+        String filename = null;
+
+        if (existSub) {
+            filename = file.getParentFile().getName() + "/" + file.getName();
+        } else {
+            filename = file.getName();
+        }
+
+        int clientHandlerPort = sendWrite(ip, port, seq, blocks, filename.trim());
 
         // Slicing the data to datasize packets
 
