@@ -114,6 +114,22 @@ public class FFSync {
         return names;
     }
 
+    public void createLogFile () {
+        try {
+            File logsFile = new File("logs.txt");
+            if (!logsFile.exists()) {
+                logsFile.createNewFile();
+                System.out.println("logs.txt created successfully!!!");
+            }
+            else {
+                System.out.println("logs.txt cannot be created - File already exists...");
+            }
+        } catch (IOException e) {
+            System.out.println("An error ocurred while creating LogFile :(");
+            e.printStackTrace();
+        }
+    }
+
     public static void main(String[] args) {
 
         // parse arguments
@@ -124,6 +140,9 @@ public class FFSync {
             ips.add(args[i]);
         }
         FFSync ffSync = new FFSync(folder, ips);
+
+
+        ffSync.createLogFile();
 
         // HTTP
         try {
