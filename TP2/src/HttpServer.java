@@ -1,10 +1,8 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -12,12 +10,12 @@ import java.util.Objects;
 // este protocolo ocorre na camada 7 do modelo OSI
 
 public class HttpServer implements Runnable {
-    private String[] logs;
     private int port;
+    private File folder;
     
     
-    public HttpServer (String[] logs, int port) {
-        this.logs = logs;
+    public HttpServer (int port, File folder) {
+        this.folder = folder;
         this.port = port;
     }
     
@@ -26,7 +24,7 @@ public class HttpServer implements Runnable {
         try (ServerSocket serverSocket = new ServerSocket(port)) {  //using a TCP socket to handle a TCP connection
             while (true) {
                 try (Socket client = serverSocket.accept()) {   //espera ate poder ter uma conexao de um cliente para aceitar
-                    handleClient(client, logs);
+                    handleClient(client, folder);
                 }
             }
         }catch (IOException e) {
@@ -35,8 +33,8 @@ public class HttpServer implements Runnable {
     }
 
 
-    private static void handleClient(Socket client, String[] logs) throws IOException {
-        System.out.println("Debug: got new client " + client.toString() + "\n");
+    private static void handleClient(Socket client, File folder) throws IOException {
+        //System.out.println("Debug: got new client " + client.toString() + "\n");
         BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream())); //ler a request para um buffered reader
 
         StringBuilder requestBuilder = new StringBuilder();
@@ -44,6 +42,9 @@ public class HttpServer implements Runnable {
         while (!(line = br.readLine()).isBlank()) {     //A request acaba sempre com uma linha vazia (\r\n), portanto terminamos de ler nesse caso
             requestBuilder.append(line + "\r\n");       ////ler a request a partir do socket do cliente.
         }
+
+        File[] files = getFiles2(folder);
+        String[] filesToLogs = fileArrayToStringArray2(files);
 
         //Parsing da request
         String request = requestBuilder.toString();
@@ -62,8 +63,8 @@ public class HttpServer implements Runnable {
 
         String accessLog = String.format("Client %s, method %s, path %s, version %s, host %s, headers %s",
                 client.toString(), method, path, version, host, headers.toString());
-        System.out.println(accessLog);
-        System.out.println("\nRequest is: \n" + request + "\n");
+        //System.out.println(accessLog);
+        //System.out.println("\nRequest is: \n" + request + "\n");
 
         if (!Objects.equals(path, "/")) {
             OutputStream clientOutput = client.getOutputStream();
@@ -82,7 +83,7 @@ public class HttpServer implements Runnable {
             clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
             clientOutput.write(("ContentType: text/html\r\n").getBytes());
             clientOutput.write("\r\n".getBytes());
-            for (String s : logs) {
+            for (String s : filesToLogs) {
                 clientOutput.write(s.getBytes());
             }
             clientOutput.write("\r\n\r\n".getBytes());
@@ -91,7 +92,30 @@ public class HttpServer implements Runnable {
         }
 
 
-        System.out.println("Response is: \n" + request + "\n");
+        //System.out.println("Response is: \n" + request + "\n");
     }
+
+
+
+
+    public static File[] getFiles2(File folderHttp){
+        File[] files = folderHttp.listFiles();
+
+        return files;
+    }
+    public static String[] fileArrayToStringArray2(File[] files) {
+        String[] names = new String[files.length];
+        String[] sorted = new String[files.length];
+
+        for (int i = 0; i < files.length; i++) {
+            sorted[i] = files[i].getName();
+        }
+        Arrays.sort(sorted);
+        for (int i = 0; i < files.length; i++) {
+            names[i] = "<b>" + sorted[i] + "</b><br>";
+        }
+        return names;
+    }
+
 
 }

@@ -151,12 +151,8 @@ public class FFSync {
         try {
             System.out.println("Starting HTTP server connection on localhost:" + args[4]);
 
-            String[] formattedLogs = ffSync.fileArrayToStringArray(ffSync.getFiles(ffSync.folderPath)); // tentar por o
-                                                                                                        // getFiles no
-            // HttpServer.java para dar load
-            // sempre que se faz um GET (por
-            // causa do watchfolder)
-            HttpServer httpServer = new HttpServer(formattedLogs, Integer.parseInt(args[4]));
+            File folderHTTP = new File(ffSync.folderPath);
+            HttpServer httpServer = new HttpServer(Integer.parseInt(args[4]), folderHTTP);
             Thread t1 = new Thread(httpServer);
             t1.start();
         } catch (Exception e) {
