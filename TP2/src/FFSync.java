@@ -117,14 +117,13 @@ public class FFSync {
         return names;
     }
 
-    public void createLogFile () {
+    public void createLogFile() {
         try {
             File logsFile = new File("logs.txt");
             if (!logsFile.exists()) {
                 logsFile.createNewFile();
                 System.out.println("logs.txt created successfully!!!");
-            }
-            else {
+            } else {
                 System.out.println("logs.txt cannot be created - File already exists...");
             }
         } catch (IOException e) {
@@ -143,7 +142,6 @@ public class FFSync {
             ips.add(args[i]);
         }
         FFSync ffSync = new FFSync(folder, ips);
-
 
         ffSync.createLogFile();
 
@@ -175,15 +173,19 @@ public class FFSync {
             FTR ftr = new FTR(requestSocket, ffSync.folderPath, ffSync.allFiles, ffSync.syncronized, port,
                     ffSync.receivedFiles, ru, ffSync.watching);
 
-            RequestHandler rq = new RequestHandler();
-
             Thread t = new Thread(ftr);
             t.start();
 
             // Synchronize with all peers
             for (int i = 0; i < ffSync.ips.size() - 3; i++) { // remove -3
-                rq.sendSyn(InetAddress.getByName(ffSync.ips.get(i)), port, ffSync.seq,
+
+                System.out.println("xauu");
+
+                SendHandler sh = new SendHandler(1, InetAddress.getByName(ffSync.ips.get(i)), port, ffSync.seq,
                         ffSync.getFiles(ffSync.folderPath));
+
+                Thread syn = new Thread(sh);
+                syn.start();
                 ffSync.seq++;
             }
 
@@ -197,7 +199,11 @@ public class FFSync {
 
                 String file = fi.getFile().getParentFile().getName() + "/" + fi.getFile().getName();
 
-                rq.sendRead(fi.getIp(), port, ffSync.seq, file.trim());
+                SendHandler sh = new SendHandler(2, fi.getIp(), port, ffSync.seq,
+                        file.trim());
+
+                Thread read = new Thread(sh);
+                read.start();
                 ffSync.seq++;
                 System.out.println("Reading file:" + fi.getFile().getName());
             }
