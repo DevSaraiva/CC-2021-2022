@@ -1,4 +1,6 @@
+import java.awt.event.InputEvent;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.net.DatagramSocket;
@@ -7,6 +9,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -120,11 +123,22 @@ public class FFSync {
     public void createLogFile() {
         try {
             File logsFile = new File("logs.txt");
-            if (!logsFile.exists()) {
+            if (logsFile.exists()) {
+                System.out.println("logs.txt already exists...");
+                System.out.println("Do you want to delete the existing one and create a new logs.txt? [y/n]");
+                Scanner sc = new Scanner(System.in);
+                String input = sc.nextLine();
+
+                if (input.equals("y")) {
+                    logsFile.delete();
+                    logsFile.createNewFile();
+                } else {
+                    System.out.println("logs.txt not created. Using the existing one (may cause problems)");
+                }
+
+            } else {
                 logsFile.createNewFile();
                 System.out.println("logs.txt created successfully!!!");
-            } else {
-                System.out.println("logs.txt cannot be created - File already exists...");
             }
         } catch (IOException e) {
             System.out.println("An error ocurred while creating LogFile :(");
@@ -149,12 +163,8 @@ public class FFSync {
         try {
             System.out.println("Starting HTTP server connection on localhost:" + args[4]);
 
-            String[] formattedLogs = ffSync.fileArrayToStringArray(ffSync.getFiles(ffSync.folderPath)); // tentar por o
-                                                                                                        // getFiles no
-            // HttpServer.java para dar load
-            // sempre que se faz um GET (por
-            // causa do watchfolder)
-            HttpServer httpServer = new HttpServer(formattedLogs, Integer.parseInt(args[4]));
+            File folderHTTP = new File(ffSync.folderPath);
+            HttpServer httpServer = new HttpServer(Integer.parseInt(args[4]), folderHTTP);
             Thread t1 = new Thread(httpServer);
             t1.start();
         } catch (Exception e) {
@@ -178,8 +188,6 @@ public class FFSync {
 
             // Synchronize with all peers
             for (int i = 0; i < ffSync.ips.size() - 3; i++) { // remove -3
-
-                System.out.println("xauu");
 
                 SendHandler sh = new SendHandler(1, InetAddress.getByName(ffSync.ips.get(i)), port, ffSync.seq,
                         ffSync.getFiles(ffSync.folderPath));

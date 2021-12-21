@@ -45,8 +45,6 @@ public class MainWatch {
             e.printStackTrace();
         }
 
-        RequestHandler rq = new RequestHandler();
-
         System.out.println("Watching path: " + path);
 
         // We obtain the file system of the Path
@@ -92,8 +90,9 @@ public class MainWatch {
                         } else {
 
                             for (int i = 0; i < this.ips.size() - 3; i++) { // remove -3
-
-                                rq.sendFile(this.ips.get(i), this.port, seq, file, false);
+                                SendHandler sh = new SendHandler(3, this.ips.get(i), this.port, seq, file, false);
+                                Thread send = new Thread(sh);
+                                send.start();
                                 this.seq++;
                             }
                         }

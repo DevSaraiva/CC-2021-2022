@@ -64,7 +64,7 @@ public class FTR implements Runnable {
                 if (this.watching.size() == 1)
                     watch = true;
 
-                RequestHandler rh = new RequestHandler(inPacket, this.folderPath, tfs, this.allFiles, this.syncronized,
+                ReceiveHandler rh = new ReceiveHandler(inPacket, this.folderPath, tfs, this.allFiles, this.syncronized,
                         this.port, this.receivedFiles, this.recentlyUpdated, watch); // send received packet to new
                                                                                      // thread to
                 // be treated

@@ -1,11 +1,16 @@
 import jdk.swing.interop.SwingInterOpUtils;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.net.*;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.file.Files;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.sql.SQLOutput;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -473,7 +478,7 @@ public class RequestHandler implements Runnable {
 
             sendData(ip, clientHandlerPort, seq, i, data);
 
-            String log = file + " was sent to " + ip;
+            String log = file.getName() + " was sent to " + ip;
             FileAppend("logs.txt", log);
 
         }
@@ -497,27 +502,11 @@ public class RequestHandler implements Runnable {
     public void FileAppend (String fileName, String log) throws IOException {
         try (FileWriter f = new FileWriter(fileName, true); BufferedWriter bufferedWriter = new BufferedWriter(f); PrintWriter printWriter = new PrintWriter(bufferedWriter);){
             printWriter.println(log);
+            printWriter.flush();
             printWriter.close();
         }
     }
 
-    /*
-    public void createLogFile () {
-        try {
-            File logsFile = new File("logs.txt");
-            if (!logsFile.exists()) {
-                logsFile.createNewFile();
-                System.out.println("logs.txt created successfully!!!");
-            }
-            else {
-                System.out.println("logs.txt cannot be created - File already exists...");
-            }
-        } catch (IOException e) {
-            System.out.println("An error ocurred while creating LogFile :(");
-            e.printStackTrace();
-        }
-    }
-     */
 
     @Override
     public void run() {

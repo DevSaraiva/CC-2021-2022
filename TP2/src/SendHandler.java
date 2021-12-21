@@ -23,11 +23,14 @@ public class SendHandler implements Runnable {
     private int port;
     private int seq;
     private File[] files;
-    private String file;
+    private String fileS;
     private String ipS;
+    private boolean subfolder;
+    private File file;
 
     // 1-SendSyn
     // 2-SendRead
+    // 3- SendFile
 
     public SendHandler(DatagramSocket socket) {
         this.socket = socket;
@@ -64,7 +67,26 @@ public class SendHandler implements Runnable {
         this.ipS = ip;
         this.port = port;
         this.seq = seq;
+        this.fileS = file;
+
+    }
+
+    public SendHandler(int mode, String ip, int port, int seq, File file, boolean subfolder) {
+
+        this.mode = mode;
+
+        try {
+            this.socket = new DatagramSocket();
+        } catch (SocketException e) {
+
+            e.printStackTrace();
+        }
+
+        this.ipS = ip;
+        this.port = port;
+        this.seq = seq;
         this.file = file;
+        this.subfolder = subfolder;
 
     }
 
@@ -294,7 +316,7 @@ public class SendHandler implements Runnable {
 
         // regist into the log file
 
-        String log = file + " was sent to " + ip;
+        String log = file.getName() + " was sent to " + ip;
         FileAppend("logs.txt", log);
 
     }
@@ -311,15 +333,21 @@ public class SendHandler implements Runnable {
     @Override
     public void run() {
 
-        System.out.println("ENTROU");
-
         switch (this.mode) {
             case 1:
                 sendSyn(this.ip, this.port, this.seq, this.files);
                 break;
 
             case 2:
-                sendRead(this.ipS, this.port, this.seq, this.file);
+                sendRead(this.ipS, this.port, this.seq, this.fileS);
+                break;
+
+            case 3:
+                try {
+                    sendFile(this.ipS, this.port, this.seq, this.file, this.subfolder);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
 
         }
