@@ -478,7 +478,7 @@ public class RequestHandler implements Runnable {
 
             sendData(ip, clientHandlerPort, seq, i, data);
 
-            String log = file + " was sent to " + ip;
+            String log = file.getName() + " was sent to " + ip;
             FileAppend("logs.txt", log);
 
         }
@@ -502,6 +502,7 @@ public class RequestHandler implements Runnable {
     public void FileAppend (String fileName, String log) throws IOException {
         try (FileWriter f = new FileWriter(fileName, true); BufferedWriter bufferedWriter = new BufferedWriter(f); PrintWriter printWriter = new PrintWriter(bufferedWriter);){
             printWriter.println(log);
+            printWriter.flush();
             printWriter.close();
         }
     }

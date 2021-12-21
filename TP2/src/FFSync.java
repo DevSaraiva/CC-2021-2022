@@ -1,4 +1,6 @@
+import java.awt.event.InputEvent;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.net.DatagramSocket;
@@ -7,6 +9,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -120,12 +123,24 @@ public class FFSync {
     public void createLogFile () {
         try {
             File logsFile = new File("logs.txt");
-            if (!logsFile.exists()) {
-                logsFile.createNewFile();
-                System.out.println("logs.txt created successfully!!!");
+            if (logsFile.exists()) {
+                System.out.println("logs.txt already exists...");
+                System.out.println("Do you want to delete the existing one and create a new logs.txt? [y/n]");
+                Scanner sc = new Scanner(System.in);
+                String input = sc.nextLine();
+
+                if (input.equals("y")) {
+                    logsFile.delete();
+                    logsFile.createNewFile();
+                }
+                else {
+                    System.out.println("logs.txt not created. Using the existing one (may cause problems)");
+                }
+
             }
             else {
-                System.out.println("logs.txt cannot be created - File already exists...");
+                logsFile.createNewFile();
+                System.out.println("logs.txt created successfully!!!");
             }
         } catch (IOException e) {
             System.out.println("An error ocurred while creating LogFile :(");
