@@ -22,9 +22,12 @@ public class RequestHandler implements Runnable {
     private int port;
     private final static int MTU = 1500;
     private List<Boolean> receivedFiles;
+    private RecentlyUpdated recentlyUpdated;
+    private boolean watch;
 
     public RequestHandler(DatagramPacket inPacket, String folderPath, Map<Integer, TranferState> tfs,
-            List<FileIP> allFiles, List<Boolean> syncronized, int port, List<Boolean> receivedFiles) {
+            List<FileIP> allFiles, List<Boolean> syncronized, int port, List<Boolean> receivedFiles,
+            RecentlyUpdated recentlyUpdated, boolean watch) {
 
         this.inPacket = inPacket;
 
@@ -46,6 +49,10 @@ public class RequestHandler implements Runnable {
         this.folderPath = folderPath;
 
         this.receivedFiles = receivedFiles;
+
+        this.recentlyUpdated = recentlyUpdated;
+
+        this.watch = watch;
 
     }
 
@@ -141,6 +148,15 @@ public class RequestHandler implements Runnable {
 
         String fileName = ch.toString();
 
+        if (this.watch == true) {
+
+            // We need to put 2x because mainWatch activate for modification and for
+            // creation
+
+            this.recentlyUpdated.addFile(fileName.trim());
+
+        }
+
         TranferState tf = null;
 
         if (fileName.contains("/")) {
@@ -178,7 +194,14 @@ public class RequestHandler implements Runnable {
 
         }
 
-        this.receivedFiles.add(true);
+        this.l.lock();
+
+        try {
+            this.receivedFiles.add(true);
+
+        } finally {
+            this.l.unlock();
+        }
 
     }
 

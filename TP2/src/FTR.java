@@ -19,11 +19,13 @@ public class FTR implements Runnable {
     private int port;
     private Map<String, Map<Integer, TranferState>> transfers;
     private List<Boolean> receivedFiles;
+    private RecentlyUpdated recentlyUpdated;
+    private List<Boolean> watching;
 
     private final static int MTU = 5000;
 
     public FTR(DatagramSocket requestSocket, String folderPath, List<FileIP> allFiles, List<Boolean> syncronized,
-            int port, List<Boolean> receivedFiles) {
+            int port, List<Boolean> receivedFiles, RecentlyUpdated recentlyUpdated, List<Boolean> watching) {
 
         this.requestSocket = requestSocket;
         this.folderPath = folderPath;
@@ -32,6 +34,8 @@ public class FTR implements Runnable {
         this.syncronized = syncronized;
         this.port = port;
         this.receivedFiles = receivedFiles;
+        this.recentlyUpdated = recentlyUpdated;
+        this.watching = watching;
 
     }
 
@@ -51,12 +55,19 @@ public class FTR implements Runnable {
                     tfs = this.transfers.get(inPacket.getAddress().toString());
                 } else {
                     tfs = new HashMap<>();
-                    String key = inPacket.getAddress().toString() + inPacket.getPort();
+                    String key = inPacket.getAddress().toString() + inPacket.getPort(); // could be removed later
                     this.transfers.put(key, tfs);
                 }
 
+                Boolean watch = false;
+
+                if (this.watching.size() == 1)
+                    watch = true;
+
                 RequestHandler rh = new RequestHandler(inPacket, this.folderPath, tfs, this.allFiles, this.syncronized,
-                        this.port, this.receivedFiles); // send received packet to new thread to be treated
+                        this.port, this.receivedFiles, this.recentlyUpdated, watch); // send received packet to new
+                                                                                     // thread to
+                // be treated
                 Thread t = new Thread(rh);
 
                 t.start();

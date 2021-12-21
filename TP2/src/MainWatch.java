@@ -11,12 +11,26 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchEvent.Kind;
+import java.util.ArrayList;
+import java.util.List;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 
 public class MainWatch {
 
-    public static void watchDirectoryPath(Path path) {
+    private List<String> ips;
+    private int seq;
+    private int port;
+    private RecentlyUpdated recentlyUpdated;
+
+    public MainWatch(List<String> ips, int seq, int port, RecentlyUpdated ru) {
+        this.ips = ips;
+        this.seq = seq;
+        this.port = port;
+        this.recentlyUpdated = ru;
+    }
+
+    public void watchDirectoryPath(Path path) {
 
         // Check if path is a folder
         try {
@@ -26,10 +40,12 @@ public class MainWatch {
                 throw new IllegalArgumentException("Path: " + path
                         + " is not a folder");
             }
-        } catch (IOException ioe) {
+        } catch (IOException e) {
             // Folder does not exists
-            ioe.printStackTrace();
+            e.printStackTrace();
         }
+
+        RequestHandler rq = new RequestHandler();
 
         System.out.println("Watching path: " + path);
 
@@ -41,7 +57,7 @@ public class MainWatch {
 
             // We register the path to the service
             // We watch for creation events
-            path.register(service, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE);
+            path.register(service, ENTRY_CREATE, ENTRY_MODIFY);
 
             // Start the infinite polling loop
             WatchKey key = null;
@@ -50,24 +66,40 @@ public class MainWatch {
 
                 // Dequeueing events
                 Kind<?> kind = null;
+                Path newPath = null;
                 for (WatchEvent<?> watchEvent : key.pollEvents()) {
                     // Get the type of the event
                     kind = watchEvent.kind();
                     if (OVERFLOW == kind) {
-                        continue; // loop
+                        continue;
                     } else if (ENTRY_CREATE == kind) {
-                        // A new Path was created
-                        Path newPath = ((WatchEvent<Path>) watchEvent)
+
+                        newPath = ((WatchEvent<Path>) watchEvent)
                                 .context();
-                        // Output
-                        System.out.println("New path created: " + newPath);
+
                     } else if (ENTRY_MODIFY == kind) {
-                        // modified
-                        Path newPath = ((WatchEvent<Path>) watchEvent)
+
+                        newPath = ((WatchEvent<Path>) watchEvent)
                                 .context();
-                        // Output
-                        System.out.println("New path modified: " + newPath);
+
+                        // verify if the file was recently updated to avoid cicles
+
+                        String f = path.toString() + "/" + newPath.toString();
+                        File file = new File(f.trim());
+
+                        if (this.recentlyUpdated.containsFile(file.getName())) {
+                            this.recentlyUpdated.removeFile(file.getName());
+                        } else {
+
+                            for (int i = 0; i < this.ips.size() - 3; i++) { // remove -3
+
+                                rq.sendFile(this.ips.get(i), this.port, seq, file, false);
+                                this.seq++;
+                            }
+                        }
+
                     }
+
                 }
 
                 if (!key.reset()) {
@@ -85,7 +117,6 @@ public class MainWatch {
 
     public void wathcFolder(String folder) throws IOException,
             InterruptedException {
-        // Folder we are going to watch
 
         File dir = new File(folder);
         watchDirectoryPath(dir.toPath());
