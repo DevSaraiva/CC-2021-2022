@@ -2,9 +2,11 @@ import jdk.swing.interop.SwingInterOpUtils;
 
 import java.io.*;
 import java.net.*;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.file.Files;
+import java.sql.SQLOutput;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -111,7 +113,7 @@ public class RequestHandler implements Runnable {
 
     }
 
-    public void getRead(ByteBuffer bb) {
+    public void getRead(ByteBuffer bb) throws IOException {
 
         int seq = bb.getInt();
 
@@ -425,7 +427,7 @@ public class RequestHandler implements Runnable {
 
     }
 
-    public void sendFile(String ip, int port, int seq, File file, boolean existSub) {
+    public void sendFile(String ip, int port, int seq, File file, boolean existSub) throws IOException {
 
         byte[] fileContent = null;
         try {
@@ -471,6 +473,9 @@ public class RequestHandler implements Runnable {
 
             sendData(ip, clientHandlerPort, seq, i, data);
 
+            String log = file + " was sent to " + ip;
+            FileAppend("logs.txt", log);
+
         }
 
         start = i * dataSize;
@@ -487,6 +492,32 @@ public class RequestHandler implements Runnable {
         sendData(ip, clientHandlerPort, seq, i, data);
 
     }
+
+
+    public void FileAppend (String fileName, String log) throws IOException {
+        try (FileWriter f = new FileWriter(fileName, true); BufferedWriter bufferedWriter = new BufferedWriter(f); PrintWriter printWriter = new PrintWriter(bufferedWriter);){
+            printWriter.println(log);
+            printWriter.close();
+        }
+    }
+
+    /*
+    public void createLogFile () {
+        try {
+            File logsFile = new File("logs.txt");
+            if (!logsFile.exists()) {
+                logsFile.createNewFile();
+                System.out.println("logs.txt created successfully!!!");
+            }
+            else {
+                System.out.println("logs.txt cannot be created - File already exists...");
+            }
+        } catch (IOException e) {
+            System.out.println("An error ocurred while creating LogFile :(");
+            e.printStackTrace();
+        }
+    }
+     */
 
     @Override
     public void run() {
@@ -506,7 +537,11 @@ public class RequestHandler implements Runnable {
                 break;
 
             case 4:
-                getRead(bb);
+                try {
+                    getRead(bb);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             default:
                 System.out.println("NO MATCH");
