@@ -387,12 +387,13 @@ public class SendHandler implements Runnable {
 
         long stopTimer = System.currentTimeMillis();
         long durationInMillis = stopTimer - startTimer;
-        long durationInSeconds = durationInMillis*1000;
+        long durationInSeconds = durationInMillis / 1000;
 
-        long debit = (file.length()*8) / durationInSeconds;
+        long debit = (file.length() * 8) / durationInSeconds;
         // regist into the log file
 
-        String log = file.getName() + " was sent to " + ip + " | Duration= " + durationInMillis + "ms | Debit= " + debit + "bits/sec";
+        String log = file.getName() + " was sent to " + ip + " | Duration= " + durationInMillis + "ms | Debit= " + debit
+                + "bits/sec";
         FileAppend("logs.txt", log);
 
     }

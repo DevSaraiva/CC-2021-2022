@@ -1,62 +1,25 @@
-<<<<<<< HEAD
-.goutputstream-AMWVE1 was sent to 127.0.0.1
-11.jpeg was sent to 127.0.0.1
-13.jpeg was sent to 127.0.0.1
-bom-jesus-8.jpeg was sent to 127.0.0.1
-10.jpeg was sent to 127.0.0.1
-bom-jesus-7.jpeg was sent to 127.0.0.1
-bom-jesus-9.jpeg was sent to 127.0.0.1
-bom-jesus4.jpeg was sent to 127.0.0.1
-bom-jesus2.jpeg was sent to 127.0.0.1
-bom-jesus5.jpeg was sent to 127.0.0.1
-15.jpeg was sent to 127.0.0.1
-bom-jesus.jpeg was sent to 127.0.0.1
-bom-jesus6.jpeg was sent to 127.0.0.1
-16.jpeg was sent to 127.0.0.1
-14.jpeg was sent to 127.0.0.1
-19.jpeg was sent to 127.0.0.1
-bom-jesus3.jpeg was sent to 127.0.0.1
-18.jpeg was sent to 127.0.0.1
-17.jpeg was sent to 127.0.0.1
-Ficha04(1).pdf was sent to 127.0.0.1
-ficha4_BB.pl was sent to 127.0.0.1
-.goutputstream-K18VE1 was sent to 127.0.0.1
-ficha4_BB.pl was sent to 127.0.0.1
-=======
-10.jpeg was sent to 127.0.0.1 | Duration= 151ms | Debit= 4bits/sec
-13.jpeg was sent to 127.0.0.1 | Duration= 109ms | Debit= 3bits/sec
-bom-jesus-9.jpeg was sent to 127.0.0.1 | Duration= 146ms | Debit= 4bits/sec
-11.jpeg was sent to 127.0.0.1 | Duration= 186ms | Debit= 2bits/sec
-bom-jesus-8.jpeg was sent to 127.0.0.1 | Duration= 108ms | Debit= 4bits/sec
-bom-jesus-7.jpeg was sent to 127.0.0.1 | Duration= 329ms | Debit= 2bits/sec
-bom-jesus2.jpeg was sent to 127.0.0.1 | Duration= 531ms | Debit= 3bits/sec
-11.jpeg was sent to 127.0.0.1 | Duration= 185ms | Debit= 2bits/sec
-13.jpeg was sent to 127.0.0.1 | Duration= 224ms | Debit= 1bits/sec
-bom-jesus-8.jpeg was sent to 127.0.0.1 | Duration= 258ms | Debit= 2bits/sec
-bom-jesus-7.jpeg was sent to 127.0.0.1 | Duration= 280ms | Debit= 2bits/sec
-10.jpeg was sent to 127.0.0.1 | Duration= 276ms | Debit= 2bits/sec
-bom-jesus4.jpeg was sent to 127.0.0.1 | Duration= 668ms | Debit= 2bits/sec
-bom-jesus-9.jpeg was sent to 127.0.0.1 | Duration= 364ms | Debit= 1bits/sec
-bom-jesus2.jpeg was sent to 127.0.0.1 | Duration= 400ms | Debit= 4bits/sec
-bom-jesus5.jpeg was sent to 127.0.0.1 | Duration= 959ms | Debit= 2bits/sec
-bom-jesus4.jpeg was sent to 127.0.0.1 | Duration= 834ms | Debit= 2bits/sec
-bom-jesus.jpeg was sent to 127.0.0.1 | Duration= 1190ms | Debit= 2bits/sec
-bom-jesus5.jpeg was sent to 127.0.0.1 | Duration= 993ms | Debit= 2bits/sec
-bom-jesus6.jpeg was sent to 127.0.0.1 | Duration= 1341ms | Debit= 2bits/sec
-15.jpeg was sent to 127.0.0.1 | Duration= 1333ms | Debit= 2bits/sec
-19.jpeg was sent to 127.0.0.1 | Duration= 1402ms | Debit= 2bits/sec
-bom-jesus.jpeg was sent to 127.0.0.1 | Duration= 1213ms | Debit= 2bits/sec
-bom-jesus6.jpeg was sent to 127.0.0.1 | Duration= 1311ms | Debit= 2bits/sec
-16.jpeg was sent to 127.0.0.1 | Duration= 1608ms | Debit= 2bits/sec
-14.jpeg was sent to 127.0.0.1 | Duration= 1607ms | Debit= 2bits/sec
-15.jpeg was sent to 127.0.0.1 | Duration= 1315ms | Debit= 2bits/sec
-bom-jesus3.jpeg was sent to 127.0.0.1 | Duration= 1653ms | Debit= 2bits/sec
-19.jpeg was sent to 127.0.0.1 | Duration= 1420ms | Debit= 2bits/sec
-16.jpeg was sent to 127.0.0.1 | Duration= 1448ms | Debit= 2bits/sec
-bom-jesus3.jpeg was sent to 127.0.0.1 | Duration= 1481ms | Debit= 3bits/sec
-17.jpeg was sent to 127.0.0.1 | Duration= 1877ms | Debit= 2bits/sec
-14.jpeg was sent to 127.0.0.1 | Duration= 1528ms | Debit= 2bits/sec
-18.jpeg was sent to 127.0.0.1 | Duration= 1891ms | Debit= 2bits/sec
-17.jpeg was sent to 127.0.0.1 | Duration= 1662ms | Debit= 3bits/sec
-18.jpeg was sent to 127.0.0.1 | Duration= 1663ms | Debit= 3bits/sec
->>>>>>> e7d56fa6cf17c31777946df8cc7ce7bf564bb24e
+10.jpeg was sent to 127.0.0.1 | Duration= 198.0ms | Debit= 3150141.414141414bits/sec
+11.jpeg was sent to 127.0.0.1 | Duration= 163.0ms | Debit= 2391361.963190184bits/sec
+bom-jesus-9.jpeg was sent to 127.0.0.1 | Duration= 150.0ms | Debit= 4063253.3333333335bits/sec
+13.jpeg was sent to 127.0.0.1 | Duration= 126.0ms | Debit= 3061079.365079365bits/sec
+bom-jesus-7.jpeg was sent to 127.0.0.1 | Duration= 191.0ms | Debit= 3545340.3141361256bits/sec
+bom-jesus-8.jpeg was sent to 127.0.0.1 | Duration= 265.0ms | Debit= 2010384.9056603773bits/sec
+chafariz-um.jpeg was sent to 127.0.0.1 | Duration= 392.0ms | Debit= 4346714.285714285bits/sec
+bom-jesus4.jpeg was sent to 127.0.0.1 | Duration= 550.0ms | Debit= 3635665.454545454bits/sec
+portas.jpeg was sent to 127.0.0.1 | Duration= 563.0ms | Debit= 2902706.927175844bits/sec
+bom-jesus2.jpeg was sent to 127.0.0.1 | Duration= 588.0ms | Debit= 2862217.6870748303bits/sec
+bom-jesus5.jpeg was sent to 127.0.0.1 | Duration= 769.0ms | Debit= 3093097.5292587774bits/sec
+15.jpeg was sent to 127.0.0.1 | Duration= 932.0ms | Debit= 3174875.5364806866bits/sec
+bom-jesus.jpeg was sent to 127.0.0.1 | Duration= 968.0ms | Debit= 3078396.6942148763bits/sec
+portas2.jpeg was sent to 127.0.0.1 | Duration= 1026.0ms | Debit= 3026978.5575048733bits/sec
+santa-cruz.jpeg was sent to 127.0.0.1 | Duration= 1129.0ms | Debit= 3079085.9167404785bits/sec
+bom-jesus6.jpeg was sent to 127.0.0.1 | Duration= 1278.0ms | Debit= 2611774.647887324bits/sec
+se-de-braga.jpeg was sent to 127.0.0.1 | Duration= 1314.0ms | Debit= 2947920.8523592083bits/sec
+16.jpeg was sent to 127.0.0.1 | Duration= 1418.0ms | Debit= 2531086.0366713684bits/sec
+chafariz-um2.jpeg was sent to 127.0.0.1 | Duration= 1435.0ms | Debit= 2622260.6271777004bits/sec
+19.jpeg was sent to 127.0.0.1 | Duration= 1437.0ms | Debit= 2599153.7926235213bits/sec
+14.jpeg was sent to 127.0.0.1 | Duration= 1452.0ms | Debit= 2641371.9008264462bits/sec
+palacio-arcebispos.jpeg was sent to 127.0.0.1 | Duration= 1469.0ms | Debit= 2807509.870660313bits/sec
+18.jpeg was sent to 127.0.0.1 | Duration= 1562.0ms | Debit= 3233833.546734955bits/sec
+bom-jesus3.jpeg was sent to 127.0.0.1 | Duration= 1565.0ms | Debit= 2929646.0063897762bits/sec
+17.jpeg was sent to 127.0.0.1 | Duration= 1605.0ms | Debit= 3299603.738317757bits/sec
