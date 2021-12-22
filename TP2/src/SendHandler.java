@@ -230,8 +230,8 @@ public class SendHandler implements Runnable {
 
         try {
 
-            ByteBuffer buff = ByteBuffer.allocate(16 + data.length).putInt(identifier).putInt(data.length).putInt(seq)
-                    .putInt(block).put(data);
+            ByteBuffer buff = ByteBuffer.allocate(16 + data.length).putInt(identifier).putInt(seq)
+                    .putInt(block).putInt(data.length).put(data);
 
             byte[] packet = Hmac.addHmac(buff);
 

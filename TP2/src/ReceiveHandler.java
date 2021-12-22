@@ -150,8 +150,6 @@ public class ReceiveHandler implements Runnable {
         CharBuffer ch = bb.asCharBuffer();
         String fileName = ch.toString();
 
-
-
         ByteBuffer msg = ByteBuffer.allocate(8 + fileName.length())
                 .putInt(id)
                 .putInt(seq);
@@ -252,10 +250,33 @@ public class ReceiveHandler implements Runnable {
 
     public void getData(ByteBuffer bb, InetAddress ip, int port) {
 
-        int length = bb.getInt();
+        int id = 3;
         int seq = bb.getInt();
         int block = bb.getInt();
-        byte[] data = bb.array();
+        int length = bb.getInt();
+
+        byte[] data = new byte[length];
+
+        bb.get(data, 0, length);
+
+        byte[] hmac = new byte[20];
+
+        bb.get(hmac, 0, 20);
+
+        // refactor msg
+
+        ByteBuffer msg = ByteBuffer.allocate(12 + data.length)
+                .putInt(id)
+                .putInt(seq)
+                .putInt(block)
+                .put(data);
+
+        try {
+            if (!Hmac.verifyHMAC(msg.array(), hmac))
+                return;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         TranferState tf = null;
 
