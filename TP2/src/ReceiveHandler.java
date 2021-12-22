@@ -151,7 +151,6 @@ public class ReceiveHandler implements Runnable {
         String fileName = ch.toString();
 
 
-
         ByteBuffer msg = ByteBuffer.allocate(8 + fileName.length())
                 .putInt(id)
                 .putInt(seq);
@@ -188,13 +187,30 @@ public class ReceiveHandler implements Runnable {
     }
 
     public void getWrite(ByteBuffer bb) {
-
+        int ident = 2;
         int seq = bb.getInt();
         int blocks = bb.getInt();
+        byte[] hmac = new byte[20];
+        bb.get(hmac, 0, 20);
 
         CharBuffer ch = bb.asCharBuffer();
 
         String fileName = ch.toString();
+
+        ByteBuffer msg = ByteBuffer.allocate(12 + fileName.length())
+                .putInt(ident)
+                .putInt(seq)
+                .putInt(blocks);
+        CharBuffer cbuff = msg.asCharBuffer();
+
+        cbuff.put(fileName);
+
+        try {
+            if (!Hmac.verifyHMAC(msg.array(), hmac))
+                return;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         if (this.watch == true) {
 
