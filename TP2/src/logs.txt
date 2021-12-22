@@ -1,18 +1,36 @@
-13.jpeg was sent to 127.0.0.1
-11.jpeg was sent to 127.0.0.1
-bom-jesus-8.jpeg was sent to 127.0.0.1
-bom-jesus-9.jpeg was sent to 127.0.0.1
-10.jpeg was sent to 127.0.0.1
-bom-jesus-7.jpeg was sent to 127.0.0.1
-bom-jesus2.jpeg was sent to 127.0.0.1
-bom-jesus4.jpeg was sent to 127.0.0.1
-bom-jesus5.jpeg was sent to 127.0.0.1
-15.jpeg was sent to 127.0.0.1
-bom-jesus.jpeg was sent to 127.0.0.1
-bom-jesus6.jpeg was sent to 127.0.0.1
-16.jpeg was sent to 127.0.0.1
-19.jpeg was sent to 127.0.0.1
-14.jpeg was sent to 127.0.0.1
-bom-jesus3.jpeg was sent to 127.0.0.1
-18.jpeg was sent to 127.0.0.1
-17.jpeg was sent to 127.0.0.1
+10.jpeg was sent to 127.0.0.1 | Duration= 151ms | Debit= 4bits/sec
+13.jpeg was sent to 127.0.0.1 | Duration= 109ms | Debit= 3bits/sec
+bom-jesus-9.jpeg was sent to 127.0.0.1 | Duration= 146ms | Debit= 4bits/sec
+11.jpeg was sent to 127.0.0.1 | Duration= 186ms | Debit= 2bits/sec
+bom-jesus-8.jpeg was sent to 127.0.0.1 | Duration= 108ms | Debit= 4bits/sec
+bom-jesus-7.jpeg was sent to 127.0.0.1 | Duration= 329ms | Debit= 2bits/sec
+bom-jesus2.jpeg was sent to 127.0.0.1 | Duration= 531ms | Debit= 3bits/sec
+11.jpeg was sent to 127.0.0.1 | Duration= 185ms | Debit= 2bits/sec
+13.jpeg was sent to 127.0.0.1 | Duration= 224ms | Debit= 1bits/sec
+bom-jesus-8.jpeg was sent to 127.0.0.1 | Duration= 258ms | Debit= 2bits/sec
+bom-jesus-7.jpeg was sent to 127.0.0.1 | Duration= 280ms | Debit= 2bits/sec
+10.jpeg was sent to 127.0.0.1 | Duration= 276ms | Debit= 2bits/sec
+bom-jesus4.jpeg was sent to 127.0.0.1 | Duration= 668ms | Debit= 2bits/sec
+bom-jesus-9.jpeg was sent to 127.0.0.1 | Duration= 364ms | Debit= 1bits/sec
+bom-jesus2.jpeg was sent to 127.0.0.1 | Duration= 400ms | Debit= 4bits/sec
+bom-jesus5.jpeg was sent to 127.0.0.1 | Duration= 959ms | Debit= 2bits/sec
+bom-jesus4.jpeg was sent to 127.0.0.1 | Duration= 834ms | Debit= 2bits/sec
+bom-jesus.jpeg was sent to 127.0.0.1 | Duration= 1190ms | Debit= 2bits/sec
+bom-jesus5.jpeg was sent to 127.0.0.1 | Duration= 993ms | Debit= 2bits/sec
+bom-jesus6.jpeg was sent to 127.0.0.1 | Duration= 1341ms | Debit= 2bits/sec
+15.jpeg was sent to 127.0.0.1 | Duration= 1333ms | Debit= 2bits/sec
+19.jpeg was sent to 127.0.0.1 | Duration= 1402ms | Debit= 2bits/sec
+bom-jesus.jpeg was sent to 127.0.0.1 | Duration= 1213ms | Debit= 2bits/sec
+bom-jesus6.jpeg was sent to 127.0.0.1 | Duration= 1311ms | Debit= 2bits/sec
+16.jpeg was sent to 127.0.0.1 | Duration= 1608ms | Debit= 2bits/sec
+14.jpeg was sent to 127.0.0.1 | Duration= 1607ms | Debit= 2bits/sec
+15.jpeg was sent to 127.0.0.1 | Duration= 1315ms | Debit= 2bits/sec
+bom-jesus3.jpeg was sent to 127.0.0.1 | Duration= 1653ms | Debit= 2bits/sec
+19.jpeg was sent to 127.0.0.1 | Duration= 1420ms | Debit= 2bits/sec
+16.jpeg was sent to 127.0.0.1 | Duration= 1448ms | Debit= 2bits/sec
+bom-jesus3.jpeg was sent to 127.0.0.1 | Duration= 1481ms | Debit= 3bits/sec
+17.jpeg was sent to 127.0.0.1 | Duration= 1877ms | Debit= 2bits/sec
+14.jpeg was sent to 127.0.0.1 | Duration= 1528ms | Debit= 2bits/sec
+18.jpeg was sent to 127.0.0.1 | Duration= 1891ms | Debit= 2bits/sec
+17.jpeg was sent to 127.0.0.1 | Duration= 1662ms | Debit= 3bits/sec
+18.jpeg was sent to 127.0.0.1 | Duration= 1663ms | Debit= 3bits/sec

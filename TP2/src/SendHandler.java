@@ -325,6 +325,7 @@ public class SendHandler implements Runnable {
 
     public void sendFile(String ip, int port, int seq, File file, boolean existSub) throws IOException {
 
+        long startTimer = System.currentTimeMillis();
         byte[] fileContent = null;
         try {
             fileContent = Files.readAllBytes(file.toPath());
@@ -384,9 +385,14 @@ public class SendHandler implements Runnable {
 
         sendData(ip, clientHandlerPort, seq, i, data);
 
+        long stopTimer = System.currentTimeMillis();
+        long durationInMillis = stopTimer - startTimer;
+        long durationInSeconds = durationInMillis*1000;
+
+        long debit = (file.length()*8) / durationInSeconds;
         // regist into the log file
 
-        String log = file.getName() + " was sent to " + ip;
+        String log = file.getName() + " was sent to " + ip + " | Duration= " + durationInMillis + "ms | Debit= " + debit + "bits/sec";
         FileAppend("logs.txt", log);
 
     }
