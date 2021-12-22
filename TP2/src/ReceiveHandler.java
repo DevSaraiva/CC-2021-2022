@@ -5,6 +5,7 @@ import java.net.*;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -142,20 +143,23 @@ public class ReceiveHandler implements Runnable {
 
     public void getRead(ByteBuffer bb) throws IOException {
 
-        int id = 4;
+        final int id = 4;
         int seq = bb.getInt();
+        int length = bb.getInt();
+
+        byte[] fileNameBytes = new byte[length];
+        bb.get(fileNameBytes, 0, length);
+
+        String fileName = new String(fileNameBytes);
+
         byte[] hmac = new byte[20];
         bb.get(hmac, 0, 20);
 
-        CharBuffer ch = bb.asCharBuffer();
-        String fileName = ch.toString();
+        // refactor the msg
 
-        ByteBuffer msg = ByteBuffer.allocate(8 + fileName.length())
-                .putInt(id)
-                .putInt(seq);
-        CharBuffer cbuff = msg.asCharBuffer();
-
-        cbuff.put(fileName);
+        ByteBuffer msg = ByteBuffer.allocate(12 + fileName.length()).putInt(id).putInt(seq)
+                .putInt(fileName.length())
+                .put(fileNameBytes);
 
         try {
             if (!Hmac.verifyHMAC(msg.array(), hmac))
@@ -186,23 +190,31 @@ public class ReceiveHandler implements Runnable {
     }
 
     public void getWrite(ByteBuffer bb) {
-        int ident = 2;
+
+        final int ident = 2;
         int seq = bb.getInt();
         int blocks = bb.getInt();
+        int length = bb.getInt();
+        byte[] fileNameBytes = new byte[length];
+        bb.get(fileNameBytes, 0, length);
+
         byte[] hmac = new byte[20];
         bb.get(hmac, 0, 20);
 
-        CharBuffer ch = bb.asCharBuffer();
+        String fileName = new String(fileNameBytes);
 
-        String fileName = ch.toString();
+        System.out.println("received " + length);
 
-        ByteBuffer msg = ByteBuffer.allocate(12 + fileName.length())
+        // refactor msg
+
+        ByteBuffer msg = ByteBuffer.allocate(16 + fileName.length())
                 .putInt(ident)
                 .putInt(seq)
-                .putInt(blocks);
-        CharBuffer cbuff = msg.asCharBuffer();
+                .putInt(blocks)
+                .putInt(length)
+                .put(fileNameBytes);
 
-        cbuff.put(fileName);
+        System.out.println("received " + msg.array().length);
 
         try {
             if (!Hmac.verifyHMAC(msg.array(), hmac))

@@ -157,11 +157,10 @@ public class SendHandler implements Runnable {
 
         try {
 
-            ByteBuffer buff = ByteBuffer.allocate(8 + 2 * filename.length()).putInt(identifier).putInt(seq);
+            byte[] fileNameBytes = filename.getBytes();
 
-            CharBuffer cbuff = buff.asCharBuffer();
-
-            cbuff.put(filename);
+            ByteBuffer buff = ByteBuffer.allocate(12 + filename.length()).putInt(identifier).putInt(seq)
+                    .putInt(filename.length()).put(fileNameBytes);
 
             byte[] packet = Hmac.addHmac(buff);
 
@@ -183,18 +182,24 @@ public class SendHandler implements Runnable {
 
     public int sendWrite(String ip, int port, int seq, int blocks, String filename) {
 
+        int portToReceive = 0;
+
         final int identifier = 2;
 
-        int portToReceive = 0;
+        byte[] filenameBytes = filename.getBytes();
+
+        System.out.println("sended " + filename.length());
 
         try {
 
-            ByteBuffer buff = ByteBuffer.allocate(12 + 2 * filename.length()).putInt(identifier).putInt(seq)
-                    .putInt(blocks);
+            ByteBuffer buff = ByteBuffer.allocate(16 + filename.length())
+                    .putInt(identifier)
+                    .putInt(seq)
+                    .putInt(blocks)
+                    .putInt(filename.length())
+                    .put(filenameBytes);
 
-            CharBuffer cbuff = buff.asCharBuffer();
-
-            cbuff.put(filename);
+            System.out.println("sended " + buff.array().length);
 
             byte[] packet = Hmac.addHmac(buff);
 

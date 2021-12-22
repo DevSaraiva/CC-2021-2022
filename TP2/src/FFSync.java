@@ -218,7 +218,7 @@ public class FFSync {
 
             // waits for the reception of all files
 
-            while (ffSync.receivedFiles.size() != neededFiles.size()) {
+            while (ffSync.receivedFiles.size() != neededFiles.size()) { // alterar condição
                 Thread.sleep(100);
             }
 
