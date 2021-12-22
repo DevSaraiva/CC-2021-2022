@@ -142,10 +142,29 @@ public class ReceiveHandler implements Runnable {
 
     public void getRead(ByteBuffer bb) throws IOException {
 
+        int id = 4;
         int seq = bb.getInt();
+        byte[] hmac = new byte[20];
+        bb.get(hmac, 0, 20);
 
         CharBuffer ch = bb.asCharBuffer();
         String fileName = ch.toString();
+
+
+
+        ByteBuffer msg = ByteBuffer.allocate(8 + fileName.length())
+                .putInt(id)
+                .putInt(seq);
+        CharBuffer cbuff = msg.asCharBuffer();
+
+        cbuff.put(fileName);
+
+        try {
+            if (!Hmac.verifyHMAC(msg.array(), hmac))
+                return;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         this.sh.sendACK(this.inPacket.getAddress(), this.inPacket.getPort(), seq, 0);
 
