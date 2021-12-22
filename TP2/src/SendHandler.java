@@ -163,7 +163,7 @@ public class SendHandler implements Runnable {
 
             cbuff.put(filename);
 
-            byte[] packet = buff.array();
+            byte[] packet = Hmac.addHmac(buff);
 
             InetAddress ipServer = InetAddress.getByName(ip);
             DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
@@ -196,7 +196,7 @@ public class SendHandler implements Runnable {
 
             cbuff.put(filename);
 
-            byte[] packet = buff.array();
+            byte[] packet = Hmac.addHmac(buff);
 
             InetAddress ipServer = InetAddress.getByName(ip);
             DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
@@ -229,8 +229,11 @@ public class SendHandler implements Runnable {
         final int identifier = 3;
 
         try {
-            byte[] packet = ByteBuffer.allocate(16 + data.length).putInt(identifier).putInt(data.length).putInt(seq)
-                    .putInt(block).put(data).array();
+
+            ByteBuffer buff = ByteBuffer.allocate(16 + data.length).putInt(identifier).putInt(data.length).putInt(seq)
+                    .putInt(block).put(data);
+
+            byte[] packet = Hmac.addHmac(buff);
 
             InetAddress ipServer = InetAddress.getByName(ip);
             DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
