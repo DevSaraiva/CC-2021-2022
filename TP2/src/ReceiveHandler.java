@@ -25,7 +25,7 @@ public class ReceiveHandler implements Runnable {
     private List<FileIP> allFiles;
     private List<Boolean> syncronized;
     private int port;
-    private final static int MTU = 1500;
+    private final static int MTU = 2000;
     private List<Boolean> receivedFiles;
     private RecentlyUpdated recentlyUpdated;
     private boolean watch;
@@ -195,6 +195,7 @@ public class ReceiveHandler implements Runnable {
         int seq = bb.getInt();
         int blocks = bb.getInt();
         int length = bb.getInt();
+
         byte[] fileNameBytes = new byte[length];
         bb.get(fileNameBytes, 0, length);
 
@@ -202,8 +203,6 @@ public class ReceiveHandler implements Runnable {
         bb.get(hmac, 0, 20);
 
         String fileName = new String(fileNameBytes);
-
-        System.out.println("received " + length);
 
         // refactor msg
 
@@ -213,8 +212,6 @@ public class ReceiveHandler implements Runnable {
                 .putInt(blocks)
                 .putInt(length)
                 .put(fileNameBytes);
-
-        System.out.println("received " + msg.array().length);
 
         try {
             if (!Hmac.verifyHMAC(msg.array(), hmac))
@@ -294,10 +291,11 @@ public class ReceiveHandler implements Runnable {
 
         // refactor msg
 
-        ByteBuffer msg = ByteBuffer.allocate(12 + data.length)
+        ByteBuffer msg = ByteBuffer.allocate(16 + data.length)
                 .putInt(id)
                 .putInt(seq)
                 .putInt(block)
+                .putInt(length)
                 .put(data);
 
         try {
@@ -309,17 +307,11 @@ public class ReceiveHandler implements Runnable {
 
         TranferState tf = null;
 
-        byte[] dataFinal = new byte[length];
-
-        for (int i = 0; i < length; i++) {
-            dataFinal[i] = data[i + 16];
-        }
-
         this.l.lock();
 
         try {
             tf = this.tfs.get(seq);
-            tf.addBytes(dataFinal);
+            tf.addBytes(data);
             tf.increaseBlocks();
 
         } finally {

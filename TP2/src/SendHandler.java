@@ -188,8 +188,6 @@ public class SendHandler implements Runnable {
 
         byte[] filenameBytes = filename.getBytes();
 
-        System.out.println("sended " + filename.length());
-
         try {
 
             ByteBuffer buff = ByteBuffer.allocate(16 + filename.length())
@@ -198,8 +196,6 @@ public class SendHandler implements Runnable {
                     .putInt(blocks)
                     .putInt(filename.length())
                     .put(filenameBytes);
-
-            System.out.println("sended " + buff.array().length);
 
             byte[] packet = Hmac.addHmac(buff);
 
