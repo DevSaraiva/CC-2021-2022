@@ -102,12 +102,16 @@ public class SendHandler implements Runnable {
             oos.flush();
             byte[] data = bos.toByteArray();
 
-            ByteBuffer buff = ByteBuffer.allocate(12 + data.length).putInt(identifier).putInt(seq).putInt(data.length)
+            ByteBuffer buff = ByteBuffer.allocate(12 + data.length)
+                    .putInt(identifier)
+                    .putInt(seq)
+                    .putInt(data.length)
                     .put(data);
 
-            byte[] packet = buff.array();
+            byte[] packet = Hmac.addHmac(buff);
 
             DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ip, port);
+
             this.socket.send(outPacket);
 
             this.socket.setSoTimeout(1000);
@@ -198,9 +202,9 @@ public class SendHandler implements Runnable {
             DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
             this.socket.send(outPacket);
 
-            this.socket.setSoTimeout(1000);
-
             // Waits Ack
+
+            this.socket.setSoTimeout(1000);
 
             byte[] inBuffer = new byte[20];
             DatagramPacket packetAck = new DatagramPacket(inBuffer, inBuffer.length);

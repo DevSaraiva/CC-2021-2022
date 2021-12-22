@@ -6,6 +6,9 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.file.Files;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.sql.SQLOutput;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -71,12 +74,34 @@ public class ReceiveHandler implements Runnable {
 
     public void getSyn(ByteBuffer bb) {
 
+        int id = 0;
+
         int seq = bb.getInt();
+
         int length = bb.getInt();
 
         byte[] data = new byte[length];
 
         bb.get(data, 0, length);
+
+        byte[] hmac = new byte[20];
+
+        bb.get(hmac, 0, 20);
+
+        // refactor the msg
+
+        ByteBuffer msg = ByteBuffer.allocate(12 + length)
+                .putInt(id)
+                .putInt(seq)
+                .putInt(length)
+                .put(data);
+
+        try {
+            if (!Hmac.verifyHMAC(msg.array(), hmac))
+                return;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         try {
 
@@ -270,26 +295,33 @@ public class ReceiveHandler implements Runnable {
         byte[] inBuffer = this.inPacket.getData();
         ByteBuffer bb = ByteBuffer.wrap(inBuffer);
 
-        int identifier = bb.getInt();
+        try {
 
-        switch (identifier) {
-            case 0:
-                getSyn(bb);
-                break;
+            int identifier = bb.getInt();
 
-            case 2:
-                getWrite(bb);
-                break;
+            switch (identifier) {
+                case 0:
+                    getSyn(bb);
+                    break;
 
-            case 4:
-                try {
-                    getRead(bb);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                break;
-            default:
-                System.out.println("NO MATCH");
+                case 2:
+                    getWrite(bb);
+                    break;
+
+                case 4:
+                    try {
+                        getRead(bb);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                default:
+                    System.out.println("NO MATCH");
+            }
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
         }
 
     }
