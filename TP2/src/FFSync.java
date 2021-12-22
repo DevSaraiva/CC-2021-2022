@@ -49,15 +49,36 @@ public class FFSync {
 
     }
 
-    public File[] getFiles(String folderPath) {
+    public File[] getFilesWithoutFolder(String folderPath) {
 
         File folder = new File(folderPath);
         List<File> files = new ArrayList<>();
 
         for (File f : folder.listFiles()) {
             if (f.isDirectory()) {
-                List<File> newFiles = Arrays.asList(getFiles(f.getPath()));
+                List<File> newFiles = Arrays.asList(getFilesWithFolder(f.getPath()));
                 files.addAll(newFiles);
+            } else {
+                files.add(f);
+            }
+        }
+
+        File[] res = new File[files.size()];
+        files.toArray(res);
+
+        return res;
+    }
+
+    public File[] getFilesWithFolder(String folderPath) {
+
+        File folder = new File(folderPath);
+        List<File> files = new ArrayList<>();
+
+        for (File f : folder.listFiles()) {
+            if (f.isDirectory()) {
+                List<File> newFiles = Arrays.asList(getFilesWithoutFolder(f.getPath()));
+                files.addAll(newFiles);
+                files.add(f);
             } else {
                 files.add(f);
             }
@@ -78,7 +99,6 @@ public class FFSync {
 
     public List<FileIP> neededFilesCalculator(String folderPath) {
 
-        List<File> myFiles = Arrays.asList(getFiles(folderPath));
         List<FileIP> needed = new ArrayList<>();
 
         for (FileIP fi : this.allFiles) {
@@ -190,7 +210,7 @@ public class FFSync {
             for (int i = 0; i < ffSync.ips.size() - 3; i++) { // remove -3
 
                 SendHandler sh = new SendHandler(1, InetAddress.getByName(ffSync.ips.get(i)), port, ffSync.seq,
-                        ffSync.getFiles(ffSync.folderPath));
+                        ffSync.getFilesWithoutFolder(ffSync.folderPath));
 
                 Thread syn = new Thread(sh);
                 syn.start();
@@ -218,7 +238,7 @@ public class FFSync {
 
             // waits for the reception of all files
 
-            while (ffSync.receivedFiles.size() != neededFiles.size()) { // alterar condição
+            while (ffSync.receivedFiles.size() != neededFiles.size()) {
                 Thread.sleep(100);
             }
 
@@ -226,11 +246,24 @@ public class FFSync {
 
             System.out.println("\nInitial tranfer finished\n");
 
-            // starts watching for modifications in the folder
+            // starts watching for modifications in the main folder
 
-            MainWatch mw = new MainWatch(ffSync.ips, ffSync.seq, port, ru);
+            MainWatch mw = new MainWatch(ffSync.folderPath, ffSync.ips, ffSync.seq, port, ru, false);
+            Thread mf = new Thread(mw);
+            mf.start();
 
-            mw.wathcFolder(ffSync.folderPath);
+            // starts watching the subfolders
+
+            for (File f : Arrays.asList(ffSync.getFilesWithFolder(ffSync.folderPath))) {
+
+                if (f.isDirectory()) {
+
+                    MainWatch sw = new MainWatch(f.getPath(), ffSync.ips, ffSync.seq, port, ru, true);
+                    Thread sf = new Thread(sw);
+                    sf.start();
+                }
+
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -16,18 +16,24 @@ import java.util.List;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 
-public class MainWatch {
+public class MainWatch implements Runnable {
 
+    private String folder;
     private List<String> ips;
     private int seq;
     private int port;
     private RecentlyUpdated recentlyUpdated;
+    private boolean subFolder;
 
-    public MainWatch(List<String> ips, int seq, int port, RecentlyUpdated ru) {
+    public MainWatch(String folder, List<String> ips, int seq, int port, RecentlyUpdated ru, boolean subfolder) {
+
+        this.folder = folder;
         this.ips = ips;
         this.seq = seq;
         this.port = port;
         this.recentlyUpdated = ru;
+        this.subFolder = subfolder;
+
     }
 
     public void watchDirectoryPath(Path path) {
@@ -75,27 +81,33 @@ public class MainWatch {
                         newPath = ((WatchEvent<Path>) watchEvent)
                                 .context();
 
+                        String f = path.toString() + "/" + newPath.toString();
+                        File file = new File(f.trim());
+                        System.out.println("mainwatch " + file.getName());
+
+                        // verify if the file was recently updated to avoid cicles
+
+                        if (this.recentlyUpdated.containsFile(file.getName())) {
+                            this.recentlyUpdated.removeFile(file.getName());
+
+                        } else {
+
+                            if (!file.isDirectory()) {
+                                for (int i = 0; i < this.ips.size() - 3; i++) { // remove -3
+                                    SendHandler sh = new SendHandler(3, this.ips.get(i), this.port, seq, file,
+                                            this.subFolder);
+                                    Thread send = new Thread(sh);
+                                    send.start();
+                                    this.seq++;
+                                }
+                            }
+
+                        }
+
                     } else if (ENTRY_MODIFY == kind) {
 
                         newPath = ((WatchEvent<Path>) watchEvent)
                                 .context();
-
-                        // verify if the file was recently updated to avoid cicles
-
-                        String f = path.toString() + "/" + newPath.toString();
-                        File file = new File(f.trim());
-
-                        if (this.recentlyUpdated.containsFile(file.getName())) {
-                            this.recentlyUpdated.removeFile(file.getName());
-                        } else {
-
-                            for (int i = 0; i < this.ips.size() - 3; i++) { // remove -3
-                                SendHandler sh = new SendHandler(3, this.ips.get(i), this.port, seq, file, false);
-                                Thread send = new Thread(sh);
-                                send.start();
-                                this.seq++;
-                            }
-                        }
 
                     }
 
@@ -114,10 +126,9 @@ public class MainWatch {
 
     }
 
-    public void wathcFolder(String folder) throws IOException,
-            InterruptedException {
+    public void run() {
 
-        File dir = new File(folder);
+        File dir = new File(this.folder);
         watchDirectoryPath(dir.toPath());
     }
 }

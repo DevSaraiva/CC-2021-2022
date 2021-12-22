@@ -213,12 +213,6 @@ public class ReceiveHandler implements Runnable {
             e.printStackTrace();
         }
 
-        if (this.watch == true) {
-
-            this.recentlyUpdated.addFile(fileName.trim());
-
-        }
-
         TranferState tf = null;
 
         if (fileName.contains("/")) {
@@ -226,6 +220,17 @@ public class ReceiveHandler implements Runnable {
             tf = new TranferState(strings[1], blocks, strings[0]);
         } else {
             tf = new TranferState(fileName, blocks, null);
+        }
+
+        if (this.watch == true) {
+
+            if (fileName.contains("/")) {
+                String[] strings = fileName.split("/");
+                this.recentlyUpdated.addFile(strings[1].trim());
+            } else {
+                this.recentlyUpdated.addFile(fileName.trim());
+            }
+
         }
 
         this.l.lock();
