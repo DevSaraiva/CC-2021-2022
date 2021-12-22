@@ -99,20 +99,31 @@ public class HttpServer implements Runnable {
 
 
     public static File[] getFiles2(File folderHttp){
-        File[] files = folderHttp.listFiles();
+        File[] allFiles_Http = folderHttp.listFiles();
 
-        return files;
+        return allFiles_Http;
     }
     public static String[] fileArrayToStringArray2(File[] files) {
         String[] names = new String[files.length];
         String[] sorted = new String[files.length];
 
         for (int i = 0; i < files.length; i++) {
-            sorted[i] = files[i].getName();
+            if (files[i].isDirectory()) {
+                sorted[i] = "[DIRECTORY] " + files[i].getName();
+            }
+            else {
+                sorted[i] = files[i].getName();
+            }
         }
         Arrays.sort(sorted);
         for (int i = 0; i < files.length; i++) {
-            names[i] = "<b>" + sorted[i] + "</b><br>";
+            if (sorted[i].startsWith("[DIRECTORY]")) {
+                String[] diretoria = sorted[i].split(" ");
+                names[i] = "<b style=\"background-color:DodgerBlue;\">" + diretoria[0] + "</b>" + "<b>" + diretoria[1] + "</b><br>";
+            }
+            else {
+                names[i] = "<b>" + sorted[i] + "</b><br>";
+            }
         }
         return names;
     }
