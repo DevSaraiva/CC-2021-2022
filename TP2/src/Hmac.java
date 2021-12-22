@@ -58,10 +58,10 @@ public class Hmac {
         byte[] newHmac = calculateHMAC(msg); // calculate the HMAC of the received message
 
         if (Arrays.equals(newHmac, hmac)) { // check if the HMAC's do match
-            System.out.println("HMAC verified - Authenticity & Identity OK");
+            // System.out.println("HMAC verified - Authenticity & Identity OK");
             return true;
         } else {
-            System.out.println("ERROR! Hmac not verified");
+            // System.out.println("ERROR! Hmac not verified");
             return false;
         }
     }

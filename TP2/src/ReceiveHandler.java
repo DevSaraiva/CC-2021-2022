@@ -134,13 +134,6 @@ public class ReceiveHandler implements Runnable {
 
     }
 
-    public void getAck(ByteBuffer bb) {
-
-        int seq = bb.getInt();
-        int block = bb.getInt();
-
-    }
-
     public void getRead(ByteBuffer bb) throws IOException {
 
         final int id = 4;
@@ -242,7 +235,7 @@ public class ReceiveHandler implements Runnable {
             this.l.unlock();
         }
 
-        this.sh.sendACK(this.inPacket.getAddress(), this.inPacket.getPort(), seq, blocks);
+        this.sh.sendACK(this.inPacket.getAddress(), this.inPacket.getPort(), seq, 0);
 
         // receive all packets from the file
 

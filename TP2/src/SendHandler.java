@@ -13,6 +13,9 @@ import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.file.Files;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 
 public class SendHandler implements Runnable {
 
@@ -118,9 +121,13 @@ public class SendHandler implements Runnable {
 
             // Waits Ack
 
-            byte[] inBuffer = new byte[20];
+            byte[] inBuffer = new byte[32];
             DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
             this.socket.receive(inPacket);
+
+            while (!verifyACK(seq, 0, inPacket)) {
+                this.socket.receive(inPacket);
+            }
 
         }
         // resend packet
@@ -140,7 +147,12 @@ public class SendHandler implements Runnable {
 
             final int identifier = 1;
 
-            byte[] packet = ByteBuffer.allocate(12).putInt(identifier).putInt(seq).putInt(block).array();
+            ByteBuffer buff = ByteBuffer.allocate(12)
+                    .putInt(identifier)
+                    .putInt(seq)
+                    .putInt(block);
+
+            byte[] packet = Hmac.addHmac(buff);
 
             DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ip, port);
             this.socket.send(outPacket);
@@ -148,6 +160,37 @@ public class SendHandler implements Runnable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+    }
+
+    public boolean verifyACK(int seq, int block, DatagramPacket inPacket) {
+
+        ByteBuffer bb = ByteBuffer.wrap(inPacket.getData());
+        int id = bb.getInt();
+        int rSeq = bb.getInt();
+        int rBlock = bb.getInt();
+
+        byte[] mac = new byte[20];
+        bb.get(mac, 0, 20);
+
+        boolean res = false;
+
+        // refactoring the packet
+
+        ByteBuffer receivedACK = ByteBuffer.allocate(12)
+                .putInt(id)
+                .putInt(rSeq)
+                .putInt(rBlock);
+
+        try {
+            if (rSeq == seq && rBlock == block && Hmac.verifyHMAC(receivedACK.array(), mac))
+                res = true;
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+
+        return res;
 
     }
 
@@ -168,11 +211,21 @@ public class SendHandler implements Runnable {
             DatagramPacket outPacket = new DatagramPacket(packet, packet.length, ipServer, port);
             this.socket.send(outPacket);
 
-            // receive ACk
+            // verify Ack
 
-            byte[] inBuffer = new byte[20];
-            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
-            this.socket.receive(inPacket);
+            byte[] inBuffer = new byte[32];
+            DatagramPacket packetAck = new DatagramPacket(inBuffer, inBuffer.length);
+            this.socket.setSoTimeout(1000);
+            this.socket.receive(packetAck);
+
+            while (!verifyACK(seq, 0, packetAck)) {
+                // waits ACK
+                this.socket.receive(packetAck);
+            }
+
+        } catch (SocketTimeoutException e) {
+            System.out.println("resending Read");
+            sendRead(ip, port, seq, filename);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -207,9 +260,14 @@ public class SendHandler implements Runnable {
 
             this.socket.setSoTimeout(1000);
 
-            byte[] inBuffer = new byte[20];
+            byte[] inBuffer = new byte[32];
             DatagramPacket packetAck = new DatagramPacket(inBuffer, inBuffer.length);
             this.socket.receive(packetAck);
+
+            while (!verifyACK(seq, 0, packetAck)) {
+                this.socket.receive(packetAck);
+
+            }
 
             portToReceive = packetAck.getPort();
 
@@ -244,9 +302,13 @@ public class SendHandler implements Runnable {
 
             this.socket.setSoTimeout(1000);
 
-            byte[] inBuffer = new byte[20];
+            byte[] inBuffer = new byte[32];
             DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
             this.socket.receive(inPacket);
+
+            while (!verifyACK(seq, block, inPacket)) {
+                this.socket.receive(inPacket);
+            }
 
             // resend the packet
 
