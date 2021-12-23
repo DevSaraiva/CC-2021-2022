@@ -242,6 +242,7 @@ public class ReceiveHandler implements Runnable {
 
             if (this.tfs.containsKey(seq)) {
                 System.out.println("write repetido " + " " + fileName + " " + seq);
+                this.sh.sendACK(this.inPacket.getAddress(), this.inPacket.getPort(), seq, 0);
 
                 return;
 
