@@ -92,7 +92,7 @@ public class MainWatch implements Runnable {
                         } else {
 
                             if (!file.isDirectory()) {
-                                for (int i = 0; i < this.ips.size() - 3; i++) { // remove -3
+                                for (int i = 0; i < this.ips.size(); i++) {
                                     SendHandler sh = new SendHandler(3, this.ips.get(i), this.port, seq, file,
                                             this.subFolder);
                                     Thread send = new Thread(sh);

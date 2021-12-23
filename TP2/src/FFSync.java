@@ -92,7 +92,7 @@ public class FFSync {
 
     public boolean isSync() {
 
-        return this.ips.size() - 3 == this.syncronized.size(); // remove -3
+        return this.ips.size() == this.syncronized.size();
     }
 
     public int containsFile(File f, List<File> files) {
@@ -220,10 +220,10 @@ public class FFSync {
 
         // HTTP
         try {
-            System.out.println("Starting HTTP server connection on localhost:" + args[4]);
+            System.out.println("Starting HTTP server connection on localhost: 8080");
 
             File folderHTTP = new File(ffSync.folderPath);
-            HttpServer httpServer = new HttpServer(Integer.parseInt(args[4]), folderHTTP);
+            HttpServer httpServer = new HttpServer(8080, folderHTTP);
             Thread t1 = new Thread(httpServer);
             t1.start();
         } catch (Exception e) {
@@ -234,22 +234,19 @@ public class FFSync {
 
         try {
 
-            int port = Integer.parseInt(args[3]);
-            int requestPort = Integer.parseInt(args[2]);
+            DatagramSocket requestSocket = new DatagramSocket(ffSync.port);
 
-            DatagramSocket requestSocket = new DatagramSocket(requestPort);
-
-            FTR ftr = new FTR(requestSocket, ffSync.folderPath, ffSync.allFiles, ffSync.syncronized, port,
-                    ffSync.receivedFiles, ru, ffSync.watching);
+            FTR ftr = new FTR(requestSocket, ffSync.folderPath, ffSync.allFiles, ffSync.syncronized, ffSync.port,
+                    ffSync.receivedFiles, ru, ffSync.watching, ffSync.ips);
 
             Thread t = new Thread(ftr);
             t.start();
 
             // Synchronize with all peers
 
-            for (int i = 0; i < ffSync.ips.size() - 3; i++) { // remove -3
+            for (int i = 0; i < ffSync.ips.size(); i++) {
 
-                SendHandler sh = new SendHandler(1, InetAddress.getByName(ffSync.ips.get(i)), port, ffSync.seq,
+                SendHandler sh = new SendHandler(1, InetAddress.getByName(ffSync.ips.get(i)), ffSync.port, ffSync.seq,
                         ffSync.getFilesWithoutFolder(ffSync.folderPath));
 
                 Thread syn = new Thread(sh);
@@ -268,7 +265,9 @@ public class FFSync {
 
                 String file = fi.getFile().getParentFile().getName() + "/" + fi.getFile().getName();
 
-                SendHandler sh = new SendHandler(2, fi.getIp(), port, ffSync.seq,
+                System.out.println(file);
+
+                SendHandler sh = new SendHandler(2, fi.getIp(), ffSync.port, ffSync.seq,
                         file.trim());
 
                 Thread read = new Thread(sh);
@@ -289,7 +288,7 @@ public class FFSync {
 
             // starts watching for modifications in the main folder
 
-            MainWatch mw = new MainWatch(ffSync.folderPath, ffSync.ips, ffSync.seq, port, ru, false);
+            MainWatch mw = new MainWatch(ffSync.folderPath, ffSync.ips, ffSync.seq, ffSync.port, ru, false);
             Thread mf = new Thread(mw);
             mf.start();
 
@@ -299,7 +298,7 @@ public class FFSync {
 
                 if (f.isDirectory()) {
 
-                    MainWatch sw = new MainWatch(f.getPath(), ffSync.ips, ffSync.seq, port, ru, true);
+                    MainWatch sw = new MainWatch(f.getPath(), ffSync.ips, ffSync.seq, ffSync.port, ru, true);
                     Thread sf = new Thread(sw);
                     sf.start();
                 }

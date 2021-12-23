@@ -21,11 +21,13 @@ public class FTR implements Runnable {
     private List<Boolean> receivedFiles;
     private RecentlyUpdated recentlyUpdated;
     private List<Boolean> watching;
+    private List<String> ips;
 
     private final static int MTU = 5000;
 
     public FTR(DatagramSocket requestSocket, String folderPath, List<FileIP> allFiles, List<Boolean> syncronized,
-            int port, List<Boolean> receivedFiles, RecentlyUpdated recentlyUpdated, List<Boolean> watching) {
+            int port, List<Boolean> receivedFiles, RecentlyUpdated recentlyUpdated, List<Boolean> watching,
+            List<String> ips) {
 
         this.requestSocket = requestSocket;
         this.folderPath = folderPath;
@@ -36,6 +38,7 @@ public class FTR implements Runnable {
         this.receivedFiles = receivedFiles;
         this.recentlyUpdated = recentlyUpdated;
         this.watching = watching;
+        this.ips = ips;
 
     }
 
@@ -49,28 +52,34 @@ public class FTR implements Runnable {
                 DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
                 this.requestSocket.receive(inPacket);
 
-                Map<Integer, TranferState> tfs;
+                if (ips.contains(inPacket.getAddress().toString().substring(1))) {
 
-                if (transfers.containsKey(inPacket.getAddress().toString())) {
-                    tfs = this.transfers.get(inPacket.getAddress().toString());
-                } else {
-                    tfs = new HashMap<>();
-                    String key = inPacket.getAddress().toString() + inPacket.getPort(); // could be removed later
-                    this.transfers.put(key, tfs);
+                    Map<Integer, TranferState> tfs;
+
+                    if (transfers.containsKey(inPacket.getAddress().toString())) {
+                        tfs = this.transfers.get(inPacket.getAddress().toString());
+                    } else {
+                        tfs = new HashMap<>();
+                        String key = inPacket.getAddress().toString();
+                        this.transfers.put(key, tfs);
+                    }
+
+                    Boolean watch = false;
+
+                    if (this.watching.size() == 1)
+                        watch = true;
+
+                    ReceiveHandler rh = new ReceiveHandler(inPacket, this.folderPath, tfs, this.allFiles,
+                            this.syncronized,
+                            this.port, this.receivedFiles, this.recentlyUpdated, watch); // send received packet to new
+                                                                                         // thread to
+                    // be treated
+                    Thread t = new Thread(rh);
+
+                    t.start();
+
                 }
 
-                Boolean watch = false;
-
-                if (this.watching.size() == 1)
-                    watch = true;
-
-                ReceiveHandler rh = new ReceiveHandler(inPacket, this.folderPath, tfs, this.allFiles, this.syncronized,
-                        this.port, this.receivedFiles, this.recentlyUpdated, watch); // send received packet to new
-                                                                                     // thread to
-                // be treated
-                Thread t = new Thread(rh);
-
-                t.start();
             }
 
             this.requestSocket.close();

@@ -20,6 +20,7 @@ public class TranferState {
         this.totalBlocks = totalBlocks;
         this.bytes = new byte[0];
         this.subfolder = subfolder;
+        this.actualBlocks = 0;
     }
 
     public String getFileName() {
@@ -86,13 +87,13 @@ public class TranferState {
         }
     }
 
-    public boolean isFinished(int actualBlocks) {
+    public boolean isFinished() {
 
         Boolean res;
         this.l.lock();
 
         try {
-            res = this.actualBlocks == this.totalBlocks + 1;
+            res = this.actualBlocks >= this.totalBlocks + 1;
         } finally {
 
             this.l.unlock();

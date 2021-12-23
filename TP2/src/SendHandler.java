@@ -93,7 +93,10 @@ public class SendHandler implements Runnable {
 
     }
 
-    public void sendSyn(InetAddress ip, int port, int seq, File[] files) {
+    public void sendSyn(InetAddress ip, int port, int seq, File[] files, int tries) {
+
+        if (tries > 5)
+            return;
 
         try {
 
@@ -133,7 +136,7 @@ public class SendHandler implements Runnable {
         // resend packet
         catch (SocketTimeoutException e) {
 
-            sendSyn(ip, port, seq, files);
+            sendSyn(ip, port, seq, files, tries + 1);
         }
 
         catch (Exception e) {
@@ -194,7 +197,10 @@ public class SendHandler implements Runnable {
 
     }
 
-    public void sendRead(String ip, int port, int seq, String filename) {
+    public void sendRead(String ip, int port, int seq, String filename, int tries) {
+
+        if (tries > 5)
+            return;
 
         final int identifier = 4;
 
@@ -224,8 +230,8 @@ public class SendHandler implements Runnable {
             }
 
         } catch (SocketTimeoutException e) {
-            System.out.println("resending Read");
-            sendRead(ip, port, seq, filename);
+            System.out.println("resending Read to " + filename);
+            sendRead(ip, port, seq, filename, tries + 1);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -233,7 +239,10 @@ public class SendHandler implements Runnable {
 
     }
 
-    public int sendWrite(String ip, int port, int seq, int blocks, String filename) {
+    public int sendWrite(String ip, int port, int seq, int blocks, String filename, int tries) {
+
+        if (tries > 5)
+            return -1;
 
         int portToReceive = 0;
 
@@ -273,7 +282,7 @@ public class SendHandler implements Runnable {
 
         } catch (SocketTimeoutException e) {
             System.out.println("resending Write");
-            sendWrite(ip, port, seq, blocks, filename);
+            return sendWrite(ip, port, seq, blocks, filename, tries + 1);
         }
 
         catch (Exception e) {
@@ -283,7 +292,10 @@ public class SendHandler implements Runnable {
         return portToReceive;
     }
 
-    public void sendData(String ip, int port, int seq, int block, byte[] data) {
+    public boolean sendData(String ip, int port, int seq, int block, byte[] data, int tries) {
+
+        if (tries >= 5)
+            return false;
 
         final int identifier = 3;
 
@@ -314,12 +326,14 @@ public class SendHandler implements Runnable {
 
         } catch (SocketTimeoutException e) {
             System.out.println("Resending packet seq:" + seq + " block:" + block);
-            sendData(ip, port, seq, block, data);
+            return sendData(ip, port, seq, block, data, tries + 1);
         }
 
         catch (Exception e) {
             e.printStackTrace();
         }
+
+        return true;
 
     }
 
@@ -343,7 +357,10 @@ public class SendHandler implements Runnable {
             filename = file.getName();
         }
 
-        int clientHandlerPort = sendWrite(ip, port, seq, blocks, filename.trim());
+        int clientHandlerPort = sendWrite(ip, port, seq, blocks, filename.trim(), 0);
+
+        if (clientHandlerPort == -1)
+            return;
 
         // Slicing the data to datasize packets
 
@@ -368,7 +385,8 @@ public class SendHandler implements Runnable {
 
             k = 0;
 
-            sendData(ip, clientHandlerPort, seq, i, data);
+            if (!sendData(ip, clientHandlerPort, seq, i, data, 0))
+                return;
 
         }
 
@@ -383,7 +401,8 @@ public class SendHandler implements Runnable {
             k++;
         }
 
-        sendData(ip, clientHandlerPort, seq, i, data);
+        if (!sendData(ip, clientHandlerPort, seq, i, data, 0))
+            return;
 
         double stopTimer = System.currentTimeMillis();
         double durationInMillis = stopTimer - startTimer;
@@ -412,11 +431,11 @@ public class SendHandler implements Runnable {
 
         switch (this.mode) {
             case 1:
-                sendSyn(this.ip, this.port, this.seq, this.files);
+                sendSyn(this.ip, this.port, this.seq, this.files, 0);
                 break;
 
             case 2:
-                sendRead(this.ipS, this.port, this.seq, this.fileS);
+                sendRead(this.ipS, this.port, this.seq, this.fileS, 0);
                 break;
 
             case 3:

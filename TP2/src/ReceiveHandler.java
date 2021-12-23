@@ -145,6 +145,8 @@ public class ReceiveHandler implements Runnable {
 
         String fileName = new String(fileNameBytes);
 
+        System.out.println("get read " + fileName + " " + seq);
+
         byte[] hmac = new byte[20];
         bb.get(hmac, 0, 20);
 
@@ -197,6 +199,8 @@ public class ReceiveHandler implements Runnable {
 
         String fileName = new String(fileNameBytes);
 
+        System.out.println("get write " + fileName + " " + seq);
+
         // refactor msg
 
         ByteBuffer msg = ByteBuffer.allocate(16 + fileName.length())
@@ -235,16 +239,25 @@ public class ReceiveHandler implements Runnable {
 
         this.l.lock();
         try {
-            this.tfs.put(seq, tf);
+
+            if (this.tfs.containsKey(seq)) {
+                System.out.println("write repetido " + " " + fileName + " " + seq);
+
+                return;
+
+            } else {
+                this.tfs.put(seq, tf);
+                this.sh.sendACK(this.inPacket.getAddress(), this.inPacket.getPort(), seq, 0);
+
+            }
+
         } finally {
             this.l.unlock();
         }
 
-        this.sh.sendACK(this.inPacket.getAddress(), this.inPacket.getPort(), seq, 0);
-
         // receive all packets from the file
 
-        for (int i = 0; i <= blocks; i++) {
+        for (int i = 0; !tf.isFinished(); i++) {
 
             byte[] inBuffer = new byte[MTU];
             DatagramPacket packet = new DatagramPacket(inBuffer, inBuffer.length);
@@ -261,9 +274,12 @@ public class ReceiveHandler implements Runnable {
 
         }
 
+        // registry the completed transfer
+
         this.l.lock();
 
         try {
+
             this.receivedFiles.add(true);
 
         } finally {
@@ -303,23 +319,34 @@ public class ReceiveHandler implements Runnable {
             e.printStackTrace();
         }
 
+        this.sh.sendACK(ip, port, seq, block);
+
         TranferState tf = null;
 
         this.l.lock();
 
         try {
+
             tf = this.tfs.get(seq);
-            tf.addBytes(data);
-            tf.increaseBlocks();
+
+            int expectedBlock = tf.getActualBlocks();
+
+            if (block == expectedBlock) {
+
+                tf.addBytes(data);
+                tf.increaseBlocks();
+            }
 
         } finally {
 
             this.l.unlock();
         }
 
-        if (tf.isFinished(block)) {
+        if (tf.isFinished()) {
 
             String path = this.folderPath + '/' + tf.getFileName();
+
+            System.out.println("write on " + path);
 
             try {
 
@@ -343,8 +370,6 @@ public class ReceiveHandler implements Runnable {
                 e.printStackTrace();
             }
         }
-
-        this.sh.sendACK(ip, port, seq, block);
 
     }
 
