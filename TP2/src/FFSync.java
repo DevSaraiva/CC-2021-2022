@@ -95,11 +95,29 @@ public class FFSync {
         return this.ips.size() - 3 == this.syncronized.size(); // remove -3
     }
 
+    public int containsFile(File f, List<File> files) {
+
+        int i = 0;
+
+        for (File file : files) {
+
+            if (file.getName().equals(f.getName()))
+                return i;
+
+            i++;
+        }
+
+        return -1;
+
+    }
+
     // calculate the files missing
 
     public List<FileIP> neededFilesCalculator(String folderPath) {
 
         List<FileIP> needed = new ArrayList<>();
+        List<File> myFiles = Arrays.asList(this.getFilesWithoutFolder(folderPath));
+        List<FileIP> res = new ArrayList<>();
 
         for (FileIP fi : this.allFiles) {
 
@@ -122,11 +140,32 @@ public class FFSync {
                 }
 
                 needed.add(newer);
+
+            }
+        }
+
+        for (int i = 0; i < needed.size(); i++) {
+
+            FileIP fip = needed.get(i);
+
+            File file = fip.getFile();
+
+            int index = containsFile(file, myFiles);
+
+            if (index != -1) {
+                File myFile = myFiles.get(index);
+                if (myFile.lastModified() > file.lastModified()) {
+
+                    res.add(fip);
+                }
+            } else {
+                res.add(fip);
+
             }
 
         }
 
-        return needed;
+        return res;
     }
 
     // passar a lista de ficheiros em formato de uma lista de strings para ser
@@ -207,6 +246,7 @@ public class FFSync {
             t.start();
 
             // Synchronize with all peers
+
             for (int i = 0; i < ffSync.ips.size() - 3; i++) { // remove -3
 
                 SendHandler sh = new SendHandler(1, InetAddress.getByName(ffSync.ips.get(i)), port, ffSync.seq,
@@ -218,6 +258,7 @@ public class FFSync {
             }
 
             // waits for synchronization
+
             while (!ffSync.isSync()) {
                 Thread.sleep(100);
             }

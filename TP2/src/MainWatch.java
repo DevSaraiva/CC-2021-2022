@@ -83,7 +83,6 @@ public class MainWatch implements Runnable {
 
                         String f = path.toString() + "/" + newPath.toString();
                         File file = new File(f.trim());
-                        System.out.println("mainwatch " + file.getName());
 
                         // verify if the file was recently updated to avoid cicles
 
