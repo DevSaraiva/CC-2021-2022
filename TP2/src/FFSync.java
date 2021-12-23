@@ -21,7 +21,7 @@ public class FFSync {
     private String folderPath;
     private List<String> ips;
     private List<FileIP> allFiles;
-    private int seq = 0;
+    private int seq;
     private List<Boolean> syncronized;
     private List<Boolean> receivedFiles;
     private List<Boolean> watching;
