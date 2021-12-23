@@ -241,7 +241,7 @@ public class SendHandler implements Runnable {
 
     public int sendWrite(String ip, int port, int seq, int blocks, String filename, int tries) {
 
-        if (tries > 5)
+        if (tries > 10)
             return -1;
 
         int portToReceive = 0;
@@ -267,7 +267,7 @@ public class SendHandler implements Runnable {
 
             // Waits Ack
 
-            this.socket.setSoTimeout(1000);
+            this.socket.setSoTimeout(2000);
 
             byte[] inBuffer = new byte[32];
             DatagramPacket packetAck = new DatagramPacket(inBuffer, inBuffer.length);
@@ -281,7 +281,7 @@ public class SendHandler implements Runnable {
             portToReceive = packetAck.getPort();
 
         } catch (SocketTimeoutException e) {
-            System.out.println("resending Write");
+            System.out.println("resending Write " + seq);
             return sendWrite(ip, port, seq, blocks, filename, tries + 1);
         }
 

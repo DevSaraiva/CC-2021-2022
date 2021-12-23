@@ -145,8 +145,6 @@ public class ReceiveHandler implements Runnable {
 
         String fileName = new String(fileNameBytes);
 
-        System.out.println("get read " + fileName + " " + seq);
-
         byte[] hmac = new byte[20];
         bb.get(hmac, 0, 20);
 
@@ -199,8 +197,6 @@ public class ReceiveHandler implements Runnable {
 
         String fileName = new String(fileNameBytes);
 
-        System.out.println("get write " + fileName + " " + seq);
-
         // refactor msg
 
         ByteBuffer msg = ByteBuffer.allocate(16 + fileName.length())
@@ -241,8 +237,6 @@ public class ReceiveHandler implements Runnable {
         try {
 
             if (this.tfs.containsKey(seq)) {
-                System.out.println("write repetido " + " " + fileName + " " + seq);
-                this.sh.sendACK(this.inPacket.getAddress(), this.inPacket.getPort(), seq, 0);
 
                 return;
 
@@ -258,18 +252,28 @@ public class ReceiveHandler implements Runnable {
 
         // receive all packets from the file
 
-        for (int i = 0; !tf.isFinished(); i++) {
+        while (!tf.isFinished()) {
 
             byte[] inBuffer = new byte[MTU];
             DatagramPacket packet = new DatagramPacket(inBuffer, inBuffer.length);
+
             try {
+
+                this.socket.setSoTimeout(2000);
                 this.socket.receive(packet);
+
+            } catch (SocketTimeoutException e) {
+                this.tfs.remove(seq);
+                return;
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
             ByteBuffer bb2 = ByteBuffer.wrap(inBuffer);
+
             int id = bb2.getInt();
+
             if (id == 3)
                 getData(bb2, packet.getAddress(), packet.getPort());
 
@@ -279,7 +283,9 @@ public class ReceiveHandler implements Runnable {
 
         this.l.lock();
 
-        try {
+        try
+
+        {
 
             this.receivedFiles.add(true);
 
