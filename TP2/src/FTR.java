@@ -22,12 +22,13 @@ public class FTR implements Runnable {
     private RecentlyUpdated recentlyUpdated;
     private List<Boolean> watching;
     private List<String> ips;
+    private List<Integer> seq;
 
     private final static int MTU = 5000;
 
     public FTR(DatagramSocket requestSocket, String folderPath, List<FileIP> allFiles, List<Boolean> syncronized,
             int port, List<Boolean> receivedFiles, RecentlyUpdated recentlyUpdated, List<Boolean> watching,
-            List<String> ips) {
+            List<String> ips, List<Integer> seq) {
 
         this.requestSocket = requestSocket;
         this.folderPath = folderPath;
@@ -39,6 +40,7 @@ public class FTR implements Runnable {
         this.recentlyUpdated = recentlyUpdated;
         this.watching = watching;
         this.ips = ips;
+        this.seq = seq;
 
     }
 
@@ -71,8 +73,9 @@ public class FTR implements Runnable {
 
                     ReceiveHandler rh = new ReceiveHandler(inPacket, this.folderPath, tfs, this.allFiles,
                             this.syncronized,
-                            this.port, this.receivedFiles, this.recentlyUpdated, watch); // send received packet to new
-                                                                                         // thread to
+                            this.port, this.receivedFiles, this.recentlyUpdated, watch, seq); // send received packet to
+                                                                                              // new
+                    // thread to
                     // be treated
                     Thread t = new Thread(rh);
 

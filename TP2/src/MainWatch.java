@@ -13,19 +13,23 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchEvent.Kind;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 
 public class MainWatch implements Runnable {
 
+    ReentrantLock lock = new ReentrantLock();
+
     private String folder;
     private List<String> ips;
-    private int seq;
     private int port;
     private RecentlyUpdated recentlyUpdated;
     private boolean subFolder;
+    private List<Integer> seq;
 
-    public MainWatch(String folder, List<String> ips, int seq, int port, RecentlyUpdated ru, boolean subfolder) {
+    public MainWatch(String folder, List<String> ips, int port, RecentlyUpdated ru, boolean subfolder,
+            List<Integer> seq) {
 
         this.folder = folder;
         this.ips = ips;
@@ -33,7 +37,31 @@ public class MainWatch implements Runnable {
         this.port = port;
         this.recentlyUpdated = ru;
         this.subFolder = subfolder;
+        this.seq = seq;
 
+    }
+
+    public int getSeq() {
+        this.lock.lock();
+        try {
+
+            return this.seq.get(0);
+
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    public void increaseSeq() {
+        this.lock.lock();
+        try {
+
+            int s = this.seq.get(0);
+            this.seq.add(0, s + 1);
+
+        } finally {
+            this.lock.unlock();
+        }
     }
 
     public void watchDirectoryPath(Path path) {
@@ -93,11 +121,11 @@ public class MainWatch implements Runnable {
 
                             if (!file.isDirectory()) {
                                 for (int i = 0; i < this.ips.size(); i++) {
-                                    SendHandler sh = new SendHandler(3, this.ips.get(i), this.port, seq, file,
+                                    SendHandler sh = new SendHandler(3, this.ips.get(i), this.port, this.getSeq(), file,
                                             this.subFolder);
                                     Thread send = new Thread(sh);
                                     send.start();
-                                    this.seq++;
+                                    this.increaseSeq();
                                 }
                             }
 

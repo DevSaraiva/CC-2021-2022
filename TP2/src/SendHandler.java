@@ -20,7 +20,7 @@ import java.security.SignatureException;
 public class SendHandler implements Runnable {
 
     private DatagramSocket socket;
-    private final int dataSize = 1400;
+    private final int dataSize = 3000;
     private int mode;
     private InetAddress ip;
     private int port;
@@ -312,7 +312,7 @@ public class SendHandler implements Runnable {
 
             // Waits Ack
 
-            this.socket.setSoTimeout(1000);
+            this.socket.setSoTimeout(250);
 
             byte[] inBuffer = new byte[32];
             DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);

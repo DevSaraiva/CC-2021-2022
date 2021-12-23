@@ -17,11 +17,12 @@ import java.util.stream.Collectors;
 
 public class FFSync {
 
+    ReentrantLock lock = new ReentrantLock();
     private int port = 8888;
     private String folderPath;
     private List<String> ips;
     private List<FileIP> allFiles;
-    private int seq;
+    private List<Integer> seq;
     private List<Boolean> syncronized;
     private List<Boolean> receivedFiles;
     private List<Boolean> watching;
@@ -37,7 +38,8 @@ public class FFSync {
             e.printStackTrace();
         }
 
-        this.seq = 0;
+        this.seq = new ArrayList<>();
+        this.seq.add(0);
 
         this.ips = ips;
 
@@ -47,6 +49,29 @@ public class FFSync {
 
         this.watching = new ArrayList<>();
 
+    }
+
+    public int getSeq() {
+        this.lock.lock();
+        try {
+
+            return this.seq.get(0);
+
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    public void increaseSeq() {
+        this.lock.lock();
+        try {
+
+            int s = this.seq.get(0);
+            this.seq.add(0, s + 1);
+
+        } finally {
+            this.lock.unlock();
+        }
     }
 
     public File[] getFilesWithoutFolder(String folderPath) {
@@ -237,7 +262,7 @@ public class FFSync {
             DatagramSocket requestSocket = new DatagramSocket(ffSync.port);
 
             FTR ftr = new FTR(requestSocket, ffSync.folderPath, ffSync.allFiles, ffSync.syncronized, ffSync.port,
-                    ffSync.receivedFiles, ru, ffSync.watching, ffSync.ips);
+                    ffSync.receivedFiles, ru, ffSync.watching, ffSync.ips, ffSync.seq);
 
             Thread t = new Thread(ftr);
             t.start();
@@ -246,12 +271,14 @@ public class FFSync {
 
             for (int i = 0; i < ffSync.ips.size(); i++) {
 
-                SendHandler sh = new SendHandler(1, InetAddress.getByName(ffSync.ips.get(i)), ffSync.port, ffSync.seq,
+                SendHandler sh = new SendHandler(1, InetAddress.getByName(ffSync.ips.get(i)), ffSync.port,
+                        ffSync.getSeq(),
                         ffSync.getFilesWithoutFolder(ffSync.folderPath));
 
                 Thread syn = new Thread(sh);
                 syn.start();
-                ffSync.seq++;
+                ffSync.increaseSeq();
+
             }
 
             // waits for synchronization
@@ -267,12 +294,12 @@ public class FFSync {
 
                 System.out.println(file);
 
-                SendHandler sh = new SendHandler(2, fi.getIp(), ffSync.port, ffSync.seq,
+                SendHandler sh = new SendHandler(2, fi.getIp(), ffSync.port, ffSync.getSeq(),
                         file.trim());
 
                 Thread read = new Thread(sh);
                 read.start();
-                ffSync.seq++;
+                ffSync.increaseSeq();
                 System.out.println("Reading file:" + fi.getFile().getName());
             }
 
@@ -288,7 +315,7 @@ public class FFSync {
 
             // starts watching for modifications in the main folder
 
-            MainWatch mw = new MainWatch(ffSync.folderPath, ffSync.ips, ffSync.seq, ffSync.port, ru, false);
+            MainWatch mw = new MainWatch(ffSync.folderPath, ffSync.ips, ffSync.port, ru, false, ffSync.seq);
             Thread mf = new Thread(mw);
             mf.start();
 
@@ -298,7 +325,7 @@ public class FFSync {
 
                 if (f.isDirectory()) {
 
-                    MainWatch sw = new MainWatch(f.getPath(), ffSync.ips, ffSync.seq, ffSync.port, ru, true);
+                    MainWatch sw = new MainWatch(f.getPath(), ffSync.ips, ffSync.port, ru, true, ffSync.seq);
                     Thread sf = new Thread(sw);
                     sf.start();
                 }

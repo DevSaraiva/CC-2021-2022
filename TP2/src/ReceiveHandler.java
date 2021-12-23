@@ -25,15 +25,16 @@ public class ReceiveHandler implements Runnable {
     private List<FileIP> allFiles;
     private List<Boolean> syncronized;
     private int port;
-    private final static int MTU = 2000;
+    private final static int MTU = 5000;
     private List<Boolean> receivedFiles;
     private RecentlyUpdated recentlyUpdated;
     private boolean watch;
     private SendHandler sh;
+    private List<Integer> seq;
 
     public ReceiveHandler(DatagramPacket inPacket, String folderPath, Map<Integer, TranferState> tfs,
             List<FileIP> allFiles, List<Boolean> syncronized, int port, List<Boolean> receivedFiles,
-            RecentlyUpdated recentlyUpdated, boolean watch) {
+            RecentlyUpdated recentlyUpdated, boolean watch, List<Integer> seq) {
 
         this.inPacket = inPacket;
 
@@ -62,6 +63,8 @@ public class ReceiveHandler implements Runnable {
 
         this.sh = new SendHandler(this.socket);
 
+        this.seq = seq;
+
     }
 
     public ReceiveHandler() {
@@ -70,6 +73,29 @@ public class ReceiveHandler implements Runnable {
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public int getSeq() {
+        this.l.lock();
+        try {
+
+            return this.seq.get(0);
+
+        } finally {
+            this.l.unlock();
+        }
+    }
+
+    public void increaseSeq() {
+        this.l.lock();
+        try {
+
+            int s = this.seq.get(0);
+            this.seq.add(0, s + 1);
+
+        } finally {
+            this.l.unlock();
         }
     }
 
@@ -179,6 +205,8 @@ public class ReceiveHandler implements Runnable {
             File f = new File(file.trim());
             this.sh.sendFile(this.inPacket.getAddress().toString().substring(1), this.port, seq, f, true);
         }
+
+        this.increaseSeq();
 
     }
 
